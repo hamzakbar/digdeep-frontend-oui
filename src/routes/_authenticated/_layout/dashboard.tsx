@@ -1,17 +1,22 @@
-import { useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { fetchSessions, type Session } from '@/lib/api'
-import { Button } from '@/components/ui/button'
+import { createFileRoute } from '@tanstack/react-router'
 import { ModeToggle } from '@/components/mode-toggle'
 import { UserNav } from '@/components/user-nav'
-import { SessionCard, SessionCardSkeleton } from '@/components/session-card'
 import { CreateSessionDialog } from '@/components/create-session-dialog'
+import { AlertCircle } from 'lucide-react'
+
+/*
+import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { fetchSessions, type Session } from '@/lib/api'
+import { SessionCard, SessionCardSkeleton } from '@/components/session-card'
 import { DuplicateSessionDialog } from '@/components/duplicate-session-dialog'
 import { DeleteSessionDialog } from '@/components/delete-session-dialog'
 import { SessionShareDialog } from '@/components/session-share-dialog'
 import { PublicShareDialog } from '@/components/public-share-dialog'
-import { AlertCircle, FilePlus, Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { FilePlus, Loader2 } from 'lucide-react'
+*/
 
 export const Route = createFileRoute('/_authenticated/_layout/dashboard')({
   pendingComponent: DashboardSkeleton,
@@ -31,16 +36,41 @@ function DashboardSkeleton() {
       </header>
       <main>
         <div className='h-7 w-48 bg-muted rounded-md mb-6' />
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <SessionCardSkeleton key={i} />
-          ))}
-        </div>
+        <div className='h-32 w-full bg-muted rounded-md' />
       </main>
     </div>
   )
 }
 
+function DashboardComponent() {
+  return (
+    <>
+      <div className='container mx-auto p-4 md:p-8'>
+        <header className='flex items-center justify-between mb-8'>
+          <h1 className='text-2xl font-bold'>DigDeep</h1>
+          <div className='flex items-center gap-4'>
+            <CreateSessionDialog />
+            <ModeToggle />
+            <UserNav />
+          </div>
+        </header>
+
+        <main>
+          <h2 className='text-xl font-semibold mb-6'>Your Sessions</h2>
+          <div className='flex flex-col items-center justify-center text-center py-12 bg-muted/50 border border-dashed rounded-lg'>
+            <AlertCircle className='h-10 w-10 mb-4 text-muted-foreground' />
+            <p className='text-lg font-semibold'>Session list coming soon</p>
+            <p className='text-sm text-muted-foreground'>
+              You can still create a new session using the button above.
+            </p>
+          </div>
+        </main>
+      </div>
+    </>
+  )
+}
+
+/*
 function DashboardComponent() {
   const [sessionToDelete, setSessionToDelete] = useState<Session | null>(null)
   const [sessionToDuplicate, setSessionToDuplicate] = useState<Session | null>(
@@ -112,7 +142,7 @@ function DashboardComponent() {
               </div>
             </div>
           ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl-grid-cols-4 gap-6'>
               {sessions.map((session) => (
                 <Link
                   key={session.session_id}
@@ -185,3 +215,4 @@ function DashboardComponent() {
     </>
   )
 }
+*/

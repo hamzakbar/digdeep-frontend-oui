@@ -95,12 +95,11 @@ export const fetchSessions = async ({
     return apiFetch(`/session/user/sessions?page=${pageParam}&items_per_page=20`)
 }
 
-export const startSession = (data: {
-    session_id: string
-    name: string
-    data_context: string
-    model: string
-}) => apiFetch('/session/start', { method: 'POST', body: JSON.stringify(data) })
+export const startSession = ({ name }: { name: string }) =>
+    apiFetch('/session/start', {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+    })
 
 export const fetchSessionById = (sessionId: string) =>
     apiFetch(`/session/${sessionId}`)
@@ -208,6 +207,7 @@ export const fetchSharedLinks = (sessionId: string) =>
 
 export const deleteSharedLink = (linkId: number) =>
     apiFetch(`/files/share_links/${linkId}`, { method: 'DELETE' })
+
 
 export const fetchSharedSessionInfo = (shareToken: string) =>
     apiFetch(`/public/${shareToken}`)

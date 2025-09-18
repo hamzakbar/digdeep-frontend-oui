@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2, Plus, X } from 'lucide-react'
-import { v4 as uuidv4 } from 'uuid'
+import { Loader2 } from 'lucide-react'
 import { useForm } from '@tanstack/react-form'
 import {
   Dialog,
@@ -15,12 +14,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from './ui/button'
-import { ScrollArea } from './ui/scroll-area'
 import { Label } from './ui/label'
 import { Input } from './ui/input'
+import { startSession } from '@/lib/api'
+
+/*
+import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { v4 as uuidv4 } from 'uuid'
 import { Textarea } from './ui/textarea'
 import { FileUploader } from './file-uploader'
-import { startSession, uploadSessionData, clarifySession } from '@/lib/api'
 import { ClarificationStep, type QuestionBlock } from './clarification-step'
 import {
   Select,
@@ -56,7 +59,145 @@ type StartSessionData = {
   questions: QuestionBlock[]
   sessionId: string
 }
+*/
 
+interface StartSessionResponse {
+  session_id?: string
+  message?: string
+}
+
+export function CreateSessionDialog() {
+  const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
+
+  /*
+  const queryClient = useQueryClient()
+  const [step, setStep] = useState<Step>('setup')
+  const [sessionId, setSessionId] = useState('')
+  const [formQuestions, setFormQuestions] = useState<QuestionBlock[]>([])
+  */
+
+  const form = useForm({
+    defaultValues: {
+      name: '',
+    },
+    onSubmit: async ({ value }) => {
+      startSessionMutation.mutate(value)
+    },
+  })
+
+  /*
+  useEffect(() => {
+    if (!open) {
+      const timer = setTimeout(() => {
+        setStep('setup')
+        setSessionId('')
+        setFormQuestions([])
+        form.reset()
+      }, 200)
+      return () => clearTimeout(timer)
+    }
+  }, [open, form])
+  */
+
+  const startSessionMutation = useMutation<
+    StartSessionResponse,
+    Error,
+    { name: string }
+  >({
+    mutationFn: startSession,
+    onSuccess: (data, variables) => {
+      if (!data?.session_id) {
+        toast.error('Session created, but no session id was returned.')
+        return
+      }
+
+      toast.success(
+        data.message || `Session "${variables.name || 'Untitled'}" created!`
+      )
+      form.reset()
+      setOpen(false)
+      navigate({
+        to: '/sessions/$sessionId',
+        params: { sessionId: data.session_id },
+      })
+    },
+    onError: (err) => toast.error(`Error: ${err.message}`),
+  })
+
+  const isLoading = startSessionMutation.isPending
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Create Session</Button>
+      </DialogTrigger>
+      <DialogContent className='max-w-md'>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            form.handleSubmit()
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Create a New Session</DialogTitle>
+            <DialogDescription>
+              Give your session a descriptive name to get started.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='my-6 space-y-6'>
+            <form.Field
+              name='name'
+              validators={{
+                onBlur: ({ value }) =>
+                  !value ? 'Session name is required' : undefined,
+              }}
+            >
+              {(field) => (
+                <div className='grid gap-2'>
+                  <Label htmlFor={field.name}>Session Name</Label>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder='e.g., Q4 Financial Analysis'
+                    disabled={isLoading}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <em className='text-destructive text-sm'>
+                      {field.state.meta.errors.join(', ')}
+                    </em>
+                  )}
+                </div>
+              )}
+            </form.Field>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant='outline'
+              onClick={() => setOpen(false)}
+              type='button'
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button type='submit' disabled={isLoading}>
+              {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              Create Session
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/*
 export function CreateSessionDialog() {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>('setup')
@@ -128,7 +269,10 @@ export function CreateSessionDialog() {
         values.files.length > 0 || filteredDataSources.length > 0
 
       if (!hasDataToUpload) {
-        return { questions: [], sessionId: newSessionId }
+        return {
+          questions: [],
+          sessionId: newSessionId,
+        }
       }
 
       const formData = new FormData()
@@ -203,7 +347,6 @@ export function CreateSessionDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          {/* <PlusCircle className='mr-2 h-4 w-4' />  */}
           Create Session
         </Button>
       </DialogTrigger>
@@ -263,7 +406,7 @@ export function CreateSessionDialog() {
                         value={field.state.value}
                         onValueChange={field.handleChange}
                       >
-                        <SelectTrigger id={field.name} className='w-full'>
+                        <SelectTrigger id={field.name}>
                           <SelectValue placeholder='Select a model' />
                         </SelectTrigger>
                         <SelectContent>
@@ -280,129 +423,62 @@ export function CreateSessionDialog() {
                 <form.Field name='data_context'>
                   {(field) => (
                     <div className='grid gap-2'>
-                      <Label htmlFor={field.name}>
-                        Data Context (Optional)
-                      </Label>
+                      <Label htmlFor={field.name}>Context (Optional)</Label>
                       <Textarea
                         id={field.name}
                         name={field.name}
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        placeholder='Describe your data and analysis goals...'
+                        placeholder='Provide any background or context for this session.'
                       />
                     </div>
                   )}
                 </form.Field>
-
-                <form.Field name='data_sources'>
+                <form.Field name='files'>
                   {(field) => (
-                    <div className='space-y-2'>
-                      <div className='flex items-center justify-between'>
-                        <Label>Data Sources</Label>
-                        <Button
-                          type='button'
-                          size='icon'
-                          variant='ghost'
-                          onClick={() =>
-                            field.pushValue({
-                              id: uuidv4(),
-                              type: 'url',
-                              value: '',
-                            })
-                          }
-                        >
-                          <Plus className='h-4 w-4' />
-                        </Button>
-                      </div>
-                      {field.state.value.map((ds, index) => (
-                        <div key={ds.id} className='flex items-center gap-2'>
-                          <Select
-                            value={ds.type}
-                            onValueChange={(newType: 'url' | 'db') =>
-                              field.setValue(
-                                field.state.value.map((item) =>
-                                  item.id === ds.id
-                                    ? { ...item, type: newType }
-                                    : item
-                                )
-                              )
-                            }
-                          >
-                            <SelectTrigger className='w-[100px]'>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value='url'>URL</SelectItem>
-                              <SelectItem value='db'>DB</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            value={ds.value}
-                            onChange={(e) =>
-                              field.setValue(
-                                field.state.value.map((item) =>
-                                  item.id === ds.id
-                                    ? { ...item, value: e.target.value }
-                                    : item
-                                )
-                              )
-                            }
-                            placeholder={
-                              ds.type === 'url'
-                                ? 'https://...'
-                                : 'postgresql://...'
-                            }
-                            className='flex-1'
-                          />
-                          <Button
-                            type='button'
-                            size='icon'
-                            variant='ghost'
-                            onClick={() => field.removeValue(index)}
-                          >
-                            <X className='h-4 w-4' />
-                          </Button>
-                        </div>
-                      ))}
+                    <div className='grid gap-2'>
+                      <Label>Upload Files</Label>
+                      <FileUploader
+                        files={field.state.value}
+                        onFilesChange={field.handleChange}
+                        disabled={isLoading}
+                      />
                     </div>
                   )}
                 </form.Field>
-
-                <form.Field
-                  name='files'
-                  children={(field) => (
-                    <FileUploader
-                      files={field.state.value}
-                      onFilesChange={field.handleChange}
-                    />
+                <form.Field name='data_sources'>
+                  {(field) => (
+                    <div className='grid gap-2'>
+                      <Label>External Data Sources</Label>
+                      <DataSourceList
+                        sources={field.state.value}
+                        onChange={field.handleChange}
+                      />
+                    </div>
                   )}
-                />
+                </form.Field>
               </div>
             ) : (
               <ClarificationStep
-                formQuestions={formQuestions}
+                questions={formQuestions}
                 onAnswerChange={handleAnswerChange}
+                isSubmitting={clarifySessionMutation.isPending}
               />
             )}
           </ScrollArea>
 
           <DialogFooter>
-            {step === 'clarification' && (
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setStep('setup')}
-                disabled={isLoading}
-              >
-                Back
-              </Button>
-            )}
-            <Button type='submit' disabled={isLoading} className='ml-auto'>
-              {isLoading && <Loader2 className='h-4 w-4 animate-spin' />}
-              {step === 'setup'
-                ? 'Create & Continue'
-                : 'Submit & Start Session'}
+            <Button
+              variant='outline'
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button type='submit' disabled={isLoading}>
+              {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+              {step === 'setup' ? 'Create Session' : 'Submit Clarification'}
             </Button>
           </DialogFooter>
         </form>
@@ -410,3 +486,4 @@ export function CreateSessionDialog() {
     </Dialog>
   )
 }
+*/

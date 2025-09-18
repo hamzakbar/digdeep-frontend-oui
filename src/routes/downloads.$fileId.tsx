@@ -14,7 +14,8 @@ function DownloadFileComponent() {
   const fileQuery = useQuery({
     queryKey: ['download', fileId],
     queryFn: async () => {
-      const response = await fetchFileContent(undefined, fileId)
+      // Passing undefined for sessionId, shareToken, and visitorId as they're not needed for this route
+      const response = await fetchFileContent(undefined, undefined, undefined, fileId)
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')

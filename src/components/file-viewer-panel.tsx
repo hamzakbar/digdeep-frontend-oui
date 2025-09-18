@@ -193,7 +193,7 @@ export function FileViewerPanel({
               )
               const maxCellWidth = Math.max(
                 ...sample.map((row) =>
-                  measureTextWidth(row[header] || '', '14px sans-serif')
+                  measureTextWidth(String(row[header] || ''), '14px sans-serif')
                 )
               )
               newColumnSizing[header] = Math.max(

@@ -9,7 +9,6 @@ import {
 import { ChevronLeft, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { ChatPanel } from '@/components/chat-panel'
 import { FileViewerPanel } from '@/components/file-viewer-panel'
-import { ToolsSidebar } from '@/components/tools-sidebar'
 import {
   fetchSessionById,
   streamTask,
@@ -19,10 +18,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { NotFound } from '@/components/not-found'
 import { parseStream, type ParsedBlock } from '@/lib/stream-parser'
-import { ToolsPanel, type ActiveTool } from '@/components/tools-panel'
 import { Button } from '@/components/ui/button'
-import { FileShareDialog } from '@/components/file-share-dialog'
-import { FileEmailDialog } from '@/components/file-email-dialog'
 import { toast } from 'sonner'
 import {
   Tooltip,
@@ -31,14 +27,21 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
+/*
+import { ToolsSidebar } from '@/components/tools-sidebar'
+import { ToolsPanel, type ActiveTool } from '@/components/tools-panel'
+import { FileShareDialog } from '@/components/file-share-dialog'
+import { FileEmailDialog } from '@/components/file-email-dialog'
+*/
+
 export type Message =
   | { id: string; type: 'user'; content: string }
   | { id: string; type: 'bot'; text?: string; parsed?: ParsedBlock }
+
 export interface Goal {
   title: string
   description: string
 }
-
 export const Route = createFileRoute('/_authenticated/sessions/$sessionId')({
   loader: ({ params }) =>
     fetchSessionById(params.sessionId).catch((error) => {
@@ -109,11 +112,14 @@ function SessionComponent() {
 
   const [isChatOpen, setIsChatOpen] = useState(true)
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
-  const [shareDialogOpen, setShareDialogOpen] = useState(false)
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
+
+  /*
   const [generatedGoals, setGeneratedGoals] = useState<Goal[]>([])
   const [activeTool, setActiveTool] = useState<ActiveTool>(null)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  */
 
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -242,9 +248,6 @@ function SessionComponent() {
     useIsMutating({ mutationKey: ['streamReportTask', sessionId] }) > 0
   const isStreaming = isTaskStreaming || isReportStreaming
 
-  const handleToolSelect = (tool: NonNullable<ActiveTool>) =>
-    setActiveTool((prev) => (prev === tool ? null : tool))
-
   const handleDownloadFile = async () => {
     if (!selectedFile) {
       toast.error('Please select a file to download.')
@@ -320,24 +323,12 @@ function SessionComponent() {
           </div>
 
           <div className='flex items-center justify-end gap-2 flex-1'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => setEmailDialogOpen(true)}
-              aria-label='Email file'
-              disabled={!selectedFile}
-            >
-              Email
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => setShareDialogOpen(true)}
-              aria-label='Share file'
-              disabled={!selectedFile}
-            >
-              Share
-            </Button>
+            {/**
+             * Email/share actions were previously here and can be restored when the APIs return.
+             * Example:
+             * <Button variant='outline' size='sm' onClick={() => setEmailDialogOpen(true)} disabled={!selectedFile}>Email</Button>
+             * <Button variant='outline' size='sm' onClick={() => setShareDialogOpen(true)} disabled={!selectedFile}>Share</Button>
+             */}
             <Button
               size='sm'
               onClick={handleDownloadFile}
@@ -371,7 +362,7 @@ function SessionComponent() {
             )}
 
             <ResizablePanel
-              defaultSize={isChatOpen ? 65 : 100}
+              defaultSize={isChatOpen ? 70 : 100}
               minSize={30}
               className='flex flex-col'
             >
@@ -381,48 +372,38 @@ function SessionComponent() {
                 onFileSelect={setSelectedFile}
               />
             </ResizablePanel>
-
-            {activeTool && (
-              <>
-                <ResizableHandle withHandle className='my-3' />
-                <ResizablePanel defaultSize={30} minSize={20}>
-                  <ToolsPanel
-                    sessionId={sessionId}
-                    activeTool={activeTool}
-                    onClose={() => setActiveTool(null)}
-                    onRunTask={handleRunTask}
-                    generatedGoals={generatedGoals}
-                    onSetGeneratedGoals={setGeneratedGoals}
-                    onCancelExecution={handleCancelStream}
-                  />
-                </ResizablePanel>
-              </>
-            )}
+            {/**
+             * Historical sidebar content (goals, checkpoints, shared links) rendered an extra panel here.
+             * Restore the block below when those tools are available again.
+             *
+             * {activeTool && (
+             *   <>
+             *     <ResizableHandle withHandle className='my-3' />
+             *     <ResizablePanel defaultSize={30} minSize={20}>
+             *       <ToolsPanel ... />
+             *     </ResizablePanel>
+             *   </>
+             * )}
+             */}
           </ResizablePanelGroup>
-
-          <ToolsSidebar
-            activeTool={activeTool}
-            onToolSelect={handleToolSelect}
-          />
+          {/**
+           * Tool selection bar placeholder:
+           * <ToolsSidebar activeTool={activeTool} onToolSelect={(tool) =>
+           *   setActiveTool((prev) => (prev === tool ? null : tool))
+           * }
+           * />
+           */}
         </div>
       </div>
-
-      {selectedFile && (
-        <>
-          <FileShareDialog
-            sessionId={sessionId}
-            open={shareDialogOpen}
-            onOpenChange={setShareDialogOpen}
-            fileName={selectedFile}
-          />
-          <FileEmailDialog
-            sessionId={sessionId}
-            open={emailDialogOpen}
-            onOpenChange={setEmailDialogOpen}
-            fileName={selectedFile}
-          />
-        </>
-      )}
+      {/**
+       * When re-enabling file sharing, render dialogs with the stored `shareDialogOpen`/`emailDialogOpen` flags.
+       * {selectedFile && (
+       *   <>
+       *     <FileShareDialog ... />
+       *     <FileEmailDialog ... />
+       *   </>
+       * )}
+       */}
     </>
   )
 }

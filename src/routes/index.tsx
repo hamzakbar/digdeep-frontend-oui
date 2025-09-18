@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,6 +26,28 @@ import {
 } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
+  beforeLoad: ({ context, location }) => {
+    const searchParams = new URLSearchParams(location.search)
+    const urlToken = searchParams.get('token')
+    const source = searchParams.get('source')
+
+    if (urlToken === 'replace-with-a-strong-random-string') {
+      context.auth.setToken(urlToken)
+
+      if (typeof window !== 'undefined') {
+        if (source) {
+          sessionStorage.setItem('auth_source', source)
+        }
+
+        const { pathname, hash } = window.location
+        window.history.replaceState(null, '', `${pathname}${hash}`)
+      }
+
+      throw redirect({
+        to: '/dashboard',
+      })
+    }
+  },
   component: LandingPage,
 })
 
