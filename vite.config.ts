@@ -19,4 +19,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: true,
+    allowedHosts: [
+      'digdeep.treatmentgps.com',
+      'localhost',
+      '127.0.0.1'
+    ]
+  },
+  preview: {
+    host: true,
+    allowedHosts: [
+      'digdeep.treatmentgps.com',
+      'localhost',
+      '127.0.0.1'
+    ]
+  }
 })
