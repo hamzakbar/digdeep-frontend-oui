@@ -38,7 +38,7 @@ function deleteCookie(name: string): void {
 export const auth = {
   isAuthenticated: () => {
     // First check for shared cookie from treatmentgps.com
-    const sharedToken = getCookie('auth_token');
+    const sharedToken = getCookie('access_token');
     if (sharedToken) {
       // Store in localStorage for current session as backup
       localStorage.setItem('access_token', sharedToken);
@@ -51,7 +51,7 @@ export const auth = {
 
   getToken: () => {
     // First check for shared cookie from treatmentgps.com
-    const sharedToken = getCookie('auth_token');
+    const sharedToken = getCookie('access_token');
     if (sharedToken) {
       // Store in localStorage for current session as backup
       localStorage.setItem('access_token', sharedToken);
@@ -64,7 +64,7 @@ export const auth = {
 
   setToken: (token: string) => {
     // Set both cookie (for subdomain sharing) and localStorage
-    setCookie('auth_token', token, 7); // 7 days expiration
+    setCookie('access_token', token, 7); // 7 days expiration
     localStorage.setItem('access_token', token);
   },
 
@@ -92,7 +92,7 @@ export const auth = {
 
   logout: () => {
     // Delete both cookie and localStorage
-    deleteCookie('auth_token');
+    deleteCookie('access_token');
     deleteCookie('user_details');
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_details');
