@@ -26,23 +26,9 @@ import {
 } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
-  beforeLoad: ({ context, location }) => {
-    const searchParams = new URLSearchParams(location.search)
-    const urlToken = searchParams.get('token')
-    const source = searchParams.get('source')
-
-    if (urlToken === 'replace-with-a-strong-random-string') {
-      context.auth.setToken(urlToken)
-
-      if (typeof window !== 'undefined') {
-        if (source) {
-          sessionStorage.setItem('auth_source', source)
-        }
-
-        const { pathname, hash } = window.location
-        window.history.replaceState(null, '', `${pathname}${hash}`)
-      }
-
+  beforeLoad: ({ context }) => {
+    // Check if user is already authenticated via cookies
+    if (context.auth.isAuthenticated()) {
       throw redirect({
         to: '/dashboard',
       })

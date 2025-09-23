@@ -34,16 +34,20 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         headers.set('Authorization', `Bearer ${token}`)
     }
 
+    // Include credentials for cross-subdomain requests
     const response = await fetch(`${BASE_URL}${path}`, {
         ...options,
         headers,
         cache: 'no-cache',
+        credentials: 'include' // This ensures cookies are sent with requests
     })
 
     if (!response.ok) {
         if (response.status === 401) {
             auth.logout()
-            window.location.href = '/'
+            if (typeof window !== 'undefined') {
+                window.location.href = '/'
+            }
         }
 
         let errorData
@@ -289,6 +293,7 @@ async function _streamer(
         headers,
         body: JSON.stringify(body),
         signal,
+        credentials: 'include' // This ensures cookies are sent with requests
     })
 
     if (!response.body) throw new Error('No response body for streaming')
