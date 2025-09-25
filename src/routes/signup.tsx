@@ -18,8 +18,9 @@ import { signupUser } from '@/lib/api'
 import { Separator } from '@/components/ui/separator'
 
 export const Route = createFileRoute('/signup')({
-  beforeLoad: ({ context }) => {
-    if (context.auth.isAuthenticated()) {
+  beforeLoad: async ({ context }) => {
+    const isAuthenticated = await context.auth.isAuthenticated();
+    if (isAuthenticated) {
       throw redirect({
         to: '/dashboard',
       })

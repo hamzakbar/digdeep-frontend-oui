@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { LogOut } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -16,11 +17,32 @@ import { auth } from '@/lib/auth'
 
 export function UserNav() {
   const navigate = useNavigate()
-  const user = auth.getUser()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userData = await auth.getUser()
+      setUser(userData)
+      setLoading(false)
+    }
+    
+    fetchUser()
+  }, [])
 
   const handleLogout = () => {
     auth.logout()
     navigate({ to: '/' })
+  }
+
+  if (loading) {
+    return (
+      <Button variant='ghost' className='relative h-8 w-8 rounded-full' disabled>
+        <Avatar className='h-8 w-8'>
+          <AvatarFallback>U</AvatarFallback>
+        </Avatar>
+      </Button>
+    )
   }
 
   const userInitial = user?.name ? user.name[0].toUpperCase() : 'U'
