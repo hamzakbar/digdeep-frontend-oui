@@ -26,9 +26,10 @@ import {
 } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
-  beforeLoad: ({ context }) => {
+  beforeLoad: async ({ context }) => {
     // Check if user is already authenticated via cookies
-    if (context.auth.isAuthenticated()) {
+    const isAuthenticated = await context.auth.isAuthenticated();
+    if (isAuthenticated) {
       throw redirect({
         to: '/dashboard',
       })

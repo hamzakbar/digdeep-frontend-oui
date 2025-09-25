@@ -20,6 +20,10 @@ import { FilePlus, Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/_authenticated/_layout/dashboard')({
   pendingComponent: DashboardSkeleton,
+  loader: async ({ context }) => {
+    // Ensure user data is available when loading dashboard
+    await context.auth.getUser();
+  },
   component: DashboardComponent,
 })
 

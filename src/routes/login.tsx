@@ -18,9 +18,10 @@ import { loginUser } from '@/lib/api'
 import { Separator } from '@/components/ui/separator'
 
 export const Route = createFileRoute('/login')({
-  beforeLoad: ({ context }) => {
+  beforeLoad: async ({ context }) => {
     // Check if user is already authenticated via cookies
-    if (context.auth.isAuthenticated()) {
+    const isAuthenticated = await context.auth.isAuthenticated();
+    if (isAuthenticated) {
       throw redirect({
         to: '/dashboard',
       })

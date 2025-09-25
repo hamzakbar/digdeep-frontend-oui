@@ -1,6 +1,10 @@
 import { redirect } from '@tanstack/react-router'
 
-// Function to get cookie value by name
+const TOKEN_COOKIE = 'access-token'
+const LEGACY_TOKEN_COOKIE = 'access_token'
+const LEGACY_AUTH_COOKIE = 'auth_token'
+
+// Function to get cookie value by name (only for non-HttpOnly cookies)
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
   
@@ -35,23 +39,72 @@ function deleteCookie(name: string): void {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.treatmentgps.com;";
 }
 
+// Verify authentication through backend API call
+async function verifyAuthFromBackend(): Promise<Record<string, unknown> | null> {
+  const query = `
+    query Me {
+      me {
+        _id
+        email
+        firstName
+        lastName
+        role
+        organization {
+          idOrg: _id
+          name
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch('https://api-stag.treatmentgps.com/graphql', {
+      method: 'POST',
+      credentials: 'include', // This ensures HttpOnly cookies are sent
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query,
+      }),
+    });
+
+    if (response.ok) {
+      const { data, errors } = await response.json();
+      if (data?.me && !errors) {
+        return data.me;
+      }
+    }
+  } catch (error) {
+    console.error('Auth verification failed:', error);
+  }
+  return null;
+}
+
 export const auth = {
-  isAuthenticated: () => {
-    // First check for shared cookie from treatmentgps.com
-    const sharedToken = getCookie('access_token');
-    if (sharedToken) {
-      // Store in localStorage for current session as backup
-      localStorage.setItem('access_token', sharedToken);
+  isAuthenticated: async () => {
+    // First try to verify with backend API using HttpOnly cookies
+    const user = await verifyAuthFromBackend();
+    if (user) {
+      // Store user data for future use
+      localStorage.setItem('user_details', JSON.stringify(user));
+      localStorage.setItem('access_token', 'verified'); // Indicate we're authenticated
       return true;
     }
     
-    // Fallback to localStorage
+    // Fallback to existing localStorage check for non-HttpOnly tokens
     return !!localStorage.getItem('access_token');
   },
 
-  getToken: () => {
-    // First check for shared cookie from treatmentgps.com
-    const sharedToken = getCookie('access_token');
+  getToken: async () => {
+    // First try backend verification which will work with HttpOnly cookies
+    const user = await verifyAuthFromBackend();
+    if (user) {
+      return 'verified'; // Indicate backend verification succeeded
+    }
+    
+    // Fallback: check for shared cookie from treatmentgps.com (for non-HttpOnly cookies)
+    const sharedToken = getCookie(TOKEN_COOKIE) || getCookie(LEGACY_TOKEN_COOKIE) || getCookie(LEGACY_AUTH_COOKIE);
     if (sharedToken) {
       // Store in localStorage for current session as backup
       localStorage.setItem('access_token', sharedToken);
@@ -64,24 +117,32 @@ export const auth = {
 
   setToken: (token: string) => {
     // Set both cookie (for subdomain sharing) and localStorage
-    setCookie('access_token', token, 7); // 7 days expiration
+    setCookie(TOKEN_COOKIE, token, 7); // 7 days expiration
+    deleteCookie(LEGACY_TOKEN_COOKIE)
+    deleteCookie(LEGACY_AUTH_COOKIE)
     localStorage.setItem('access_token', token);
   },
 
-  getUser: () => {
-    // Try to get user from shared cookie first
-    const sharedUser = getCookie('user_details');
-    if (sharedUser) {
+  getUser: async () => {
+    // First try backend verification
+    const user = await verifyAuthFromBackend();
+    if (user) {
+      // Store in localStorage for consistency
+      localStorage.setItem('user_details', JSON.stringify(user));
+      return user;
+    }
+    
+    // Try to get user from localStorage
+    const storedUser = localStorage.getItem('user_details');
+    if (storedUser) {
       try {
-        return JSON.parse(sharedUser);
+        return JSON.parse(storedUser);
       } catch {
-        // If parsing fails, fallback to localStorage
+        return null;
       }
     }
     
-    // Fallback to localStorage
-    const user = localStorage.getItem('user_details');
-    return user ? JSON.parse(user) : null;
+    return null;
   },
 
   setUser: (user: Record<string, unknown>) => {
@@ -92,7 +153,9 @@ export const auth = {
 
   logout: () => {
     // Delete both cookie and localStorage
-    deleteCookie('access_token');
+    deleteCookie(TOKEN_COOKIE);
+    deleteCookie(LEGACY_TOKEN_COOKIE)
+    deleteCookie(LEGACY_AUTH_COOKIE);
     deleteCookie('user_details');
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_details');
@@ -103,8 +166,9 @@ interface AuthContext {
   auth: typeof auth
 }
 
-export const authGuard = ({ context, location }: { context: AuthContext; location: Location }) => {
-  if (!context.auth.isAuthenticated()) {
+export const authGuard = async ({ context, location }: { context: AuthContext; location: Location }) => {
+  const isAuthenticated = await context.auth.isAuthenticated();
+  if (!isAuthenticated) {
     throw redirect({
       to: '/',
       search: {
