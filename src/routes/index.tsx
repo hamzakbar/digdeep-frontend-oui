@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
 import {
     Database,
     Sparkles,
@@ -16,14 +17,26 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { auth } from '@/lib/auth'
 
 export const Route = createFileRoute('/')({
     component: LandingPage,
 })
 
+const REDIRECT_URL = 'https://treatmentgps.com/home/'
+
 // --- Components ---
 
-function Navbar() {
+function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
+    const handleAuthAction = () => {
+        if (isAuthenticated) {
+            // Future dashboard route
+            console.log('Navigate to dashboard')
+        } else {
+            window.location.href = REDIRECT_URL
+        }
+    }
+
     return (
         <nav className="sticky top-0 left-0 right-0 z-50 flex justify-center p-4 md:p-6 pointer-events-none">
             <div className="flex w-full max-w-7xl items-center justify-between glass rounded-3xl px-6 py-4 transition-all duration-300 pointer-events-auto shadow-2xl shadow-primary/10 bg-white/80 backdrop-blur-xl border border-white/30">
@@ -49,9 +62,11 @@ function Navbar() {
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
-                    <Button variant="ghost" className="hidden sm:inline-flex rounded-2xl">Log in</Button>
-                    <Button className="rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-                        Get Started
+                    <Button
+                        onClick={handleAuthAction}
+                        className="rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+                    >
+                        {isAuthenticated ? 'Go to Dashboard' : 'Log in'}
                     </Button>
                 </div>
             </div>
@@ -59,7 +74,15 @@ function Navbar() {
     )
 }
 
-function HeroSection() {
+function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
+    const handleAuthAction = () => {
+        if (isAuthenticated) {
+            console.log('Navigate to dashboard')
+        } else {
+            window.location.href = REDIRECT_URL
+        }
+    }
+
     return (
         <section className="relative pt-16 pb-16 md:pt-16 md:pb-32 px-4 overflow-hidden mesh-gradient-light">
             {/* Decorative Orbs */}
@@ -81,8 +104,12 @@ function HeroSection() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-400">
-                    <Button size="lg" className="h-14 px-8 rounded-2xl text-lg shadow-2xl shadow-primary/20 hover:scale-105 transition-all group">
-                        Start Exploring
+                    <Button
+                        size="lg"
+                        onClick={handleAuthAction}
+                        className="h-14 px-8 rounded-2xl text-lg shadow-2xl shadow-primary/20 hover:scale-105 transition-all group"
+                    >
+                        {isAuthenticated ? 'Go to Dashboard' : 'Start Exploring'}
                         <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                     <Button variant="outline" size="lg" className="h-14 px-8 rounded-2xl text-lg glass border-white/40">
@@ -255,7 +282,15 @@ function FeaturesSection() {
     )
 }
 
-function CTASection() {
+function CTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
+    const handleAuthAction = () => {
+        if (isAuthenticated) {
+            console.log('Navigate to dashboard')
+        } else {
+            window.location.href = REDIRECT_URL
+        }
+    }
+
     return (
         <section className="py-24 px-4">
             <div className="max-w-5xl mx-auto glass rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
@@ -269,8 +304,12 @@ function CTASection() {
                         Join 10,000+ data professionals who are already uncovering hidden insights with DigDeep.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Button size="lg" className="h-14 px-10 rounded-2xl text-lg shadow-xl shadow-primary/30 hover:scale-105 transition-all">
-                            Claim Your Free Trial
+                        <Button
+                            size="lg"
+                            onClick={handleAuthAction}
+                            className="h-14 px-10 rounded-2xl text-lg shadow-xl shadow-primary/30 hover:scale-105 transition-all"
+                        >
+                            {isAuthenticated ? 'Go to Dashboard' : 'Claim Your Free Trial'}
                         </Button>
                         <Button variant="ghost" size="lg" className="h-14 px-10 rounded-2xl text-lg">
                             Contact Sales
@@ -344,13 +383,23 @@ function Footer() {
 }
 
 export function LandingPage() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isAuth = await auth.isAuthenticated()
+            setIsAuthenticated(isAuth)
+        }
+        checkAuth()
+    }, [])
+
     return (
         <div className="min-h-screen bg-background text-foreground scroll-smooth">
-            <Navbar />
+            <Navbar isAuthenticated={isAuthenticated} />
             <main>
-                <HeroSection />
+                <HeroSection isAuthenticated={isAuthenticated} />
                 <FeaturesSection />
-                <CTASection />
+                <CTASection isAuthenticated={isAuthenticated} />
             </main>
             <Footer />
         </div>
