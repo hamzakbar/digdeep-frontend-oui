@@ -84,3 +84,10 @@ export const fetchSessions = async ({
 
     return result
 }
+
+export const startSession = ({ name }: { name: string }): Promise<Session> => {
+    return apiFetch('/session/start', {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+    })
+}

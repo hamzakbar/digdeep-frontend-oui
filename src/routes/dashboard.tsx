@@ -1,17 +1,29 @@
-import { createFileRoute, redirect, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { fetchSessions } from '@/lib/api'
+import { createFileRoute, redirect, Link, useNavigate } from '@tanstack/react-router'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchSessions, startSession } from '@/lib/api'
 import { auth } from '@/lib/auth'
 import {
   LayoutDashboard, Clock,
   MoreVertical,
   ChevronRight,
   Database,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useState } from 'react'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
@@ -26,15 +38,39 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function DashboardPage() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['sessions'],
     queryFn: () => fetchSessions(),
+  })
+
+  const { mutate: createSession, isPending: isCreating } = useMutation({
+    mutationFn: startSession,
+    onSuccess: (newSession) => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] })
+      navigate({
+        to: '/session/$sessionId',
+        params: { sessionId: newSession.session_id }
+      })
+    },
   })
 
   // Get user details for avatar
   const userStr = localStorage.getItem('user_details')
   const user = userStr ? JSON.parse(userStr) : null
   const initials = user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}` || '?' : '?'
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [sessionName, setSessionName] = useState('')
+
+  const handleCreateSession = () => {
+    if (!sessionName.trim()) return
+    createSession({ name: sessionName })
+    setIsDialogOpen(false)
+    setSessionName('')
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -50,8 +86,13 @@ function DashboardPage() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <Button size="sm" className="rounded-xl px-4">
-              New Session
+            <Button
+              size="sm"
+              className="rounded-xl px-4"
+              onClick={() => setIsDialogOpen(true)}
+              disabled={isCreating}
+            >
+              {isCreating ? <Loader2 className="size-4 animate-spin" /> : 'New Session'}
             </Button>
             <div className="flex items-center gap-2 ml-2">
               <div
@@ -100,7 +141,13 @@ function DashboardPage() {
             <p className="text-muted-foreground max-w-sm mx-auto mb-8">
               Start your first deep analysis by clicking the button below.
             </p>
-            <Button size="lg" className="rounded-2xl px-8 shadow-lg shadow-primary/20">
+            <Button
+              size="lg"
+              className="rounded-2xl px-8 shadow-lg shadow-primary/20"
+              onClick={() => setIsDialogOpen(true)}
+              disabled={isCreating}
+            >
+              {isCreating ? <Loader2 className="size-5 animate-spin mr-2" /> : null}
               Create First Session
             </Button>
           </div>
@@ -134,7 +181,11 @@ function DashboardPage() {
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                     Active Now
                   </span>
-                  <Button variant="ghost" className="h-8 px-3 rounded-xl text-xs font-semibold group-hover:text-primary">
+                  <Button
+                    variant="ghost"
+                    className="h-8 px-3 rounded-xl text-xs font-semibold group-hover:text-primary"
+                    onClick={() => navigate({ to: '/session/$sessionId', params: { sessionId: session.session_id } })}
+                  >
                     Open Session
                     <ChevronRight className="ml-1 size-3 transition-transform group-hover:translate-x-1" />
                   </Button>
@@ -144,6 +195,44 @@ function DashboardPage() {
           </div>
         )}
       </main>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black">Create Session</DialogTitle>
+            <DialogDescription>
+              Give your new analysis session a descriptive name.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name" className="text-sm font-semibold ml-1">
+                Session Name
+              </Label>
+              <Input
+                id="name"
+                placeholder="e.g. Q4 Financial Review"
+                value={sessionName}
+                onChange={(e) => setSessionName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateSession()}
+                className="rounded-xl h-12"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" className="rounded-xl" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateSession}
+              className="rounded-xl px-6"
+              disabled={!sessionName.trim() || isCreating}
+            >
+              Create Session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
