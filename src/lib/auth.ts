@@ -43,9 +43,9 @@ export const auth = {
 }
 
 async function verifyAuthFromBackend(): Promise<Record<string, any> | null> {
-    const apiUrl = import.meta.env.VITE_API_URL
+    const apiUrl = import.meta.env.VITE_GRAPHQL_URL
     if (!apiUrl) {
-        console.error('VITE_API_URL is missing in environment')
+        console.error('VITE_GRAPHQL_URL is missing in environment')
         return null
     }
 

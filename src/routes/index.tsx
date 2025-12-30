@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import {
     Database,
@@ -28,10 +28,11 @@ const REDIRECT_URL = 'https://treatmentgps.com/home/'
 // --- Components ---
 
 function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
+    const navigate = useNavigate()
+
     const handleAuthAction = () => {
         if (isAuthenticated) {
-            // Future dashboard route
-            console.log('Navigate to dashboard')
+            navigate({ to: '/dashboard' })
         } else {
             window.location.href = REDIRECT_URL
         }
@@ -75,9 +76,11 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
 }
 
 function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
+    const navigate = useNavigate()
+
     const handleAuthAction = () => {
         if (isAuthenticated) {
-            console.log('Navigate to dashboard')
+            navigate({ to: '/dashboard' })
         } else {
             window.location.href = REDIRECT_URL
         }
@@ -283,9 +286,11 @@ function FeaturesSection() {
 }
 
 function CTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
+    const navigate = useNavigate()
+
     const handleAuthAction = () => {
         if (isAuthenticated) {
-            console.log('Navigate to dashboard')
+            navigate({ to: '/dashboard' })
         } else {
             window.location.href = REDIRECT_URL
         }
