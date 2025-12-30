@@ -1,17 +1,13 @@
-import { createFileRoute, redirect, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchSessions } from '@/lib/api'
 import { auth } from '@/lib/auth'
 import {
-  LayoutDashboard,
-  Plus,
-  Search,
-  Clock,
+  LayoutDashboard, Clock,
   MoreVertical,
   ChevronRight,
   Database,
-  Sparkles,
-  LogOut
+  Sparkles
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -30,16 +26,15 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 function DashboardPage() {
-  const navigate = useNavigate()
   const { data, isLoading, error } = useQuery({
     queryKey: ['sessions'],
     queryFn: () => fetchSessions(),
   })
 
-  const handleLogout = () => {
-    auth.logout()
-    navigate({ to: '/' })
-  }
+  // Get user details for avatar
+  const userStr = localStorage.getItem('user_details')
+  const user = userStr ? JSON.parse(userStr) : null
+  const initials = user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}` || '?' : '?'
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -55,25 +50,15 @@ function DashboardPage() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search sessions..."
-                className="pl-9 pr-4 h-9 w-64 rounded-xl border bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm transition-all"
-              />
-            </div>
             <Button size="sm" className="rounded-xl px-4">
-              <Plus className="size-4 mr-2" />
               New Session
             </Button>
             <div className="flex items-center gap-2 ml-2">
-              <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-bold text-primary text-xs cursor-pointer hover:bg-primary/20 transition-colors">
-                A
+              <div
+                className="size-10 rounded-full bg-gradient-to-tr from-primary via-primary/90 to-accent/30 border-2 border-white shadow-xl flex items-center justify-center font-bold text-white text-xs"
+              >
+                {initials}
               </div>
-              <Button variant="ghost" size="icon" className="rounded-xl" onClick={handleLogout} title="Log out">
-                <LogOut className="size-4 text-muted-foreground" />
-              </Button>
             </div>
           </div>
         </div>
@@ -116,7 +101,6 @@ function DashboardPage() {
               Start your first deep analysis by clicking the button below.
             </p>
             <Button size="lg" className="rounded-2xl px-8 shadow-lg shadow-primary/20">
-              <Plus className="size-5 mr-2" />
               Create First Session
             </Button>
           </div>
