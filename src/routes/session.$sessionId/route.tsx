@@ -21,8 +21,7 @@ import {
     FileText,
     ArrowLeft,
     Database,
-    Sparkles,
-    ClipboardList
+    Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StreamingProvider } from '@/contexts/streaming-context'
@@ -60,11 +59,6 @@ function SessionLayout() {
             label: 'Files',
             icon: FileText,
             to: '/session/$sessionId/files',
-        },
-        {
-            label: 'Planner',
-            icon: ClipboardList,
-            to: '/session/$sessionId/planner',
         },
     ]
 

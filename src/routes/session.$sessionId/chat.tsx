@@ -8,7 +8,6 @@ import {
   User,
   Bot,
   Loader2,
-  LayoutDashboard,
   StopCircle,
   MessageSquare,
   FileText as FileIcon,
@@ -267,7 +266,6 @@ export function ChatPage() {
               to='/dashboard'
               className='text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 shrink-0'
             >
-              <LayoutDashboard className='size-3.5' />
               Dashboard
             </Link>
             <ChevronRight className='size-3.5 text-muted-foreground/50 shrink-0' />

@@ -13,7 +13,6 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SessionSessionIdRouteRouteImport } from './routes/session.$sessionId/route'
 import { Route as SessionSessionIdIndexRouteImport } from './routes/session.$sessionId/index'
-import { Route as SessionSessionIdPlannerRouteImport } from './routes/session.$sessionId/planner'
 import { Route as SessionSessionIdFilesRouteImport } from './routes/session.$sessionId/files'
 import { Route as SessionSessionIdChatRouteImport } from './routes/session.$sessionId/chat'
 
@@ -37,11 +36,6 @@ const SessionSessionIdIndexRoute = SessionSessionIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => SessionSessionIdRouteRoute,
 } as any)
-const SessionSessionIdPlannerRoute = SessionSessionIdPlannerRouteImport.update({
-  id: '/planner',
-  path: '/planner',
-  getParentRoute: () => SessionSessionIdRouteRoute,
-} as any)
 const SessionSessionIdFilesRoute = SessionSessionIdFilesRouteImport.update({
   id: '/files',
   path: '/files',
@@ -59,7 +53,6 @@ export interface FileRoutesByFullPath {
   '/session/$sessionId': typeof SessionSessionIdRouteRouteWithChildren
   '/session/$sessionId/chat': typeof SessionSessionIdChatRoute
   '/session/$sessionId/files': typeof SessionSessionIdFilesRoute
-  '/session/$sessionId/planner': typeof SessionSessionIdPlannerRoute
   '/session/$sessionId/': typeof SessionSessionIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -67,7 +60,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/session/$sessionId/chat': typeof SessionSessionIdChatRoute
   '/session/$sessionId/files': typeof SessionSessionIdFilesRoute
-  '/session/$sessionId/planner': typeof SessionSessionIdPlannerRoute
   '/session/$sessionId': typeof SessionSessionIdIndexRoute
 }
 export interface FileRoutesById {
@@ -77,7 +69,6 @@ export interface FileRoutesById {
   '/session/$sessionId': typeof SessionSessionIdRouteRouteWithChildren
   '/session/$sessionId/chat': typeof SessionSessionIdChatRoute
   '/session/$sessionId/files': typeof SessionSessionIdFilesRoute
-  '/session/$sessionId/planner': typeof SessionSessionIdPlannerRoute
   '/session/$sessionId/': typeof SessionSessionIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -88,7 +79,6 @@ export interface FileRouteTypes {
     | '/session/$sessionId'
     | '/session/$sessionId/chat'
     | '/session/$sessionId/files'
-    | '/session/$sessionId/planner'
     | '/session/$sessionId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -96,7 +86,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/session/$sessionId/chat'
     | '/session/$sessionId/files'
-    | '/session/$sessionId/planner'
     | '/session/$sessionId'
   id:
     | '__root__'
@@ -105,7 +94,6 @@ export interface FileRouteTypes {
     | '/session/$sessionId'
     | '/session/$sessionId/chat'
     | '/session/$sessionId/files'
-    | '/session/$sessionId/planner'
     | '/session/$sessionId/'
   fileRoutesById: FileRoutesById
 }
@@ -145,13 +133,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionSessionIdIndexRouteImport
       parentRoute: typeof SessionSessionIdRouteRoute
     }
-    '/session/$sessionId/planner': {
-      id: '/session/$sessionId/planner'
-      path: '/planner'
-      fullPath: '/session/$sessionId/planner'
-      preLoaderRoute: typeof SessionSessionIdPlannerRouteImport
-      parentRoute: typeof SessionSessionIdRouteRoute
-    }
     '/session/$sessionId/files': {
       id: '/session/$sessionId/files'
       path: '/files'
@@ -172,14 +153,12 @@ declare module '@tanstack/react-router' {
 interface SessionSessionIdRouteRouteChildren {
   SessionSessionIdChatRoute: typeof SessionSessionIdChatRoute
   SessionSessionIdFilesRoute: typeof SessionSessionIdFilesRoute
-  SessionSessionIdPlannerRoute: typeof SessionSessionIdPlannerRoute
   SessionSessionIdIndexRoute: typeof SessionSessionIdIndexRoute
 }
 
 const SessionSessionIdRouteRouteChildren: SessionSessionIdRouteRouteChildren = {
   SessionSessionIdChatRoute: SessionSessionIdChatRoute,
   SessionSessionIdFilesRoute: SessionSessionIdFilesRoute,
-  SessionSessionIdPlannerRoute: SessionSessionIdPlannerRoute,
   SessionSessionIdIndexRoute: SessionSessionIdIndexRoute,
 }
 
