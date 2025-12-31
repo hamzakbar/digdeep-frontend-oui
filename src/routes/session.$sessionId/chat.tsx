@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchFiles, streamTask, fetchSession } from '@/lib/api'
 import {
   Send,
@@ -29,6 +29,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
+import { useStreaming } from '@/contexts/streaming-context'
 
 export const Route = createFileRoute('/session/$sessionId/chat')({
   component: ChatPage,
@@ -54,7 +55,7 @@ interface RenderableItem {
   timestamp: Date
 }
 
-function ChatPage() {
+export function ChatPage() {
   const { sessionId } = Route.useParams()
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -65,15 +66,16 @@ function ChatPage() {
     },
   ])
   const [inputValue, setInputValue] = useState('')
-  const [isStreaming, setIsStreaming] = useState(false)
+  const { isStreaming, setIsStreaming } = useStreaming()
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'chat' | 'preview'>('chat')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const { data: files } = useQuery({
-    queryKey: ['session-files-mini', sessionId],
+    queryKey: ['session-files', sessionId],
     queryFn: () => fetchFiles(sessionId),
+    refetchInterval: isStreaming ? 10000 : false,
   })
 
   const { data: session } = useQuery({
@@ -88,6 +90,8 @@ function ChatPage() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  const queryClient = useQueryClient()
 
   const handleSend = async () => {
     if (!inputValue.trim() || isStreaming) return
@@ -142,6 +146,8 @@ function ChatPage() {
     } finally {
       setIsStreaming(false)
       abortControllerRef.current = null
+      // Perform one final fetch to catch any files generated at the very end
+      queryClient.invalidateQueries({ queryKey: ['session-files', sessionId] })
     }
   }
 
@@ -182,7 +188,7 @@ function ChatPage() {
           id: `thought-group-${items.length}`,
           thoughts: currentThoughtGroup,
           finalAnswer,
-          timestamp: new Date(), // Using approximate timestamp for grouped items
+          timestamp: new Date(),
         })
       } else if (finalAnswer) {
         items.push({
@@ -523,5 +529,3 @@ function ChatPage() {
     </div>
   )
 }
-
-

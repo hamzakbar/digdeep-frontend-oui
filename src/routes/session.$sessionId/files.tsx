@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { getIconForFile } from '@/lib/file-utils'
 import { FilePreview } from '@/components/file-preview'
 import { cn } from '@/lib/utils'
+import { useStreaming } from '@/contexts/streaming-context'
 
 export const Route = createFileRoute('/session/$sessionId/files')({
     component: FilesPage,
@@ -24,10 +25,12 @@ function FilesPage() {
     const { sessionId } = Route.useParams()
     const [selectedFile, setSelectedFile] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
+    const { isStreaming } = useStreaming()
 
     const { data: files, isLoading, error } = useQuery({
         queryKey: ['session-files', sessionId],
         queryFn: () => fetchFiles(sessionId),
+        refetchInterval: isStreaming ? 1000 : false,
     })
 
     const handleDownload = async (fileName: string) => {
