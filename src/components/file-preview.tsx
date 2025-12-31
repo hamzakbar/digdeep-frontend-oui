@@ -63,6 +63,7 @@ export function FilePreview({
     const [textContent, setTextContent] = useState<string>('')
     const [tableData, setTableData] = useState<Record<string, string | number>[]>([])
     const [tableColumns, setTableColumns] = useState<ColumnDef<Record<string, string | number>>[]>([])
+    const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false)
 
     const [sorting, setSorting] = useState<SortingState>([])
     const [globalFilter, setGlobalFilter] = useState('')
@@ -234,103 +235,150 @@ export function FilePreview({
 
     if (tableData.length > 0) {
         return (
-            <div className="h-full w-full flex flex-col bg-white">
-                <div className="flex items-center gap-3 p-4 border-b bg-white/80 backdrop-blur-md sticky top-0 z-10">
-                    <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <div className="h-full w-full flex flex-col bg-white overflow-hidden min-w-0">
+                <div className="flex items-center gap-3 p-4 border-b bg-white/80 backdrop-blur-md sticky top-0 z-10 shrink-0 w-full overflow-hidden">
+                    <div className="relative flex-1 max-w-sm min-w-0">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground shrink-0" />
                         <Input
                             placeholder="Filter records..."
                             value={globalFilter ?? ''}
                             onChange={(e) => setGlobalFilter(e.target.value)}
-                            className="pl-9 h-9 rounded-xl border-border/60 text-xs shadow-none focus-visible:ring-primary/10"
+                            className="pl-9 h-9 rounded-xl border-border/60 text-xs shadow-none focus-visible:ring-primary/10 w-full"
                         />
                     </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="rounded-xl h-9 text-[11px] font-bold border-border/60">
-                                Columns <ChevronDown className="ml-2 h-3.5 w-3.5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="rounded-xl p-1">
-                            {table.getAllLeafColumns().map((column) => (
-                                <DropdownMenuCheckboxItem
-                                    key={column.id}
-                                    className="capitalize rounded-lg text-xs"
-                                    checked={column.getIsVisible()}
-                                    onCheckedChange={(value: boolean) => column.toggleVisibility(!!value)}
-                                >
-                                    {column.id}
-                                </DropdownMenuCheckboxItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    {!hideHeader && (
-                        <>
-                            <div className="w-px h-6 bg-border/60 mx-1" />
-                            <Button size="sm" variant="outline" className="rounded-xl h-9 text-[11px] font-bold border-border/60 hover:bg-primary hover:text-white hover:border-primary transition-all" onClick={handleDownload}>
-                                <Download className="size-3.5 mr-2" />
-                                Download
-                            </Button>
-                        </>
-                    )}
-                </div>
-
-                <div ref={tableContainerRef} className="flex-1 overflow-auto bg-slate-50/30">
-                    <table className="w-fit text-[13px] border-separate border-spacing-0">
-                        <thead className="sticky top-0 z-10 bg-white">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <tr key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <th
-                                            key={header.id}
-                                            className="px-4 h-11 text-left font-bold text-muted-foreground border-b border-r bg-muted/5 whitespace-nowrap group select-none"
-                                            style={{ width: header.getSize() }}
-                                        >
-                                            <div
-                                                className="flex items-center justify-between gap-2 cursor-pointer"
-                                                onClick={header.column.getToggleSortingHandler()}
-                                            >
-                                                <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
-                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    {{
-                                                        asc: <ChevronUp className="size-3.5" />,
-                                                        desc: <ChevronDown className="size-3.5" />,
-                                                    }[header.column.getIsSorted() as string] ?? (
-                                                            <ChevronsUpDown className="size-3.5 text-muted-foreground/30" />
-                                                        )}
-                                                </div>
-                                            </div>
-                                        </th>
-                                    ))}
-                                </tr>
-                            ))}
-                        </thead>
-                        <tbody className="relative" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-                            {rowVirtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
-                                const row = rows[virtualRow.index]
-                                return (
-                                    <tr
-                                        key={row.id}
-                                        className="absolute w-full hover:bg-primary/[0.02] transition-colors"
-                                        style={{
-                                            transform: `translateY(${virtualRow.start}px)`,
-                                            height: `${virtualRow.size}px`,
+                    <div className="flex items-center gap-2 shrink-0 ml-auto">
+                        <DropdownMenu open={isColumnDropdownOpen} onOpenChange={setIsColumnDropdownOpen}>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="rounded-xl h-9 text-[11px] font-bold border-border/60 shrink-0">
+                                    Columns <ChevronDown className="ml-2 h-3.5 w-3.5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-xl p-1 min-w-[200px]">
+                                <div className="flex items-center justify-between gap-2 p-2 border-b mb-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 text-[10px] px-2 font-bold hover:bg-primary/5 hover:text-primary transition-colors"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            table.toggleAllColumnsVisible(true)
                                         }}
                                     >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <td
-                                                key={cell.id}
-                                                className="px-4 py-2 border-b border-r border-border/40 truncate text-foreground/80 font-medium"
-                                                style={{ width: cell.column.getSize() }}
+                                        Select All
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 text-[10px] px-2 font-bold hover:bg-destructive/5 hover:text-destructive transition-colors"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            table.toggleAllColumnsVisible(false)
+                                        }}
+                                    >
+                                        Deselect All
+                                    </Button>
+                                </div>
+                                <div className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1 space-y-0.5">
+                                    {table.getAllLeafColumns().map((column) => (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize rounded-lg text-xs"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value: boolean) => column.toggleVisibility(!!value)}
+                                            onSelect={(e) => e.preventDefault()}
+                                        >
+                                            {column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
+                                </div>
+                                <div className="p-2 border-t mt-1">
+                                    <Button
+                                        className="w-full h-8 rounded-lg text-[11px] font-bold shadow-lg shadow-primary/20"
+                                        onClick={() => setIsColumnDropdownOpen(false)}
+                                    >
+                                        Save Changes
+                                    </Button>
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <div className="w-px h-6 bg-border/60 mx-1" />
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-xl h-9 text-[11px] font-bold border-border/60 hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0 shadow-lg shadow-slate-200/50"
+                            onClick={handleDownload}
+                        >
+                            <Download className="size-3.5 mr-2" />
+                            Download
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-hidden bg-slate-50/50 p-4 md:p-8 flex flex-col min-w-0">
+                    <div
+                        ref={tableContainerRef}
+                        className="flex-1 overflow-auto rounded-[2rem] border border-border/40 bg-white shadow-2xl shadow-slate-200/50"
+                    >
+                        <table
+                            className="text-[13px] border-separate border-spacing-0 min-w-full"
+                            style={{ width: table.getTotalSize() }}
+                        >
+                            <thead className="sticky top-0 z-10 bg-white">
+                                {table.getHeaderGroups().map((headerGroup) => (
+                                    <tr key={headerGroup.id} className="flex">
+                                        {headerGroup.headers.map((header) => (
+                                            <th
+                                                key={header.id}
+                                                className="px-4 h-12 text-left font-bold text-muted-foreground border-b border-r border-border/40 bg-muted/5 whitespace-nowrap group select-none flex items-center shrink-0 last:border-r-0"
+                                                style={{ width: header.getSize() }}
                                             >
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </td>
+                                                <div
+                                                    className="flex items-center justify-between gap-2 cursor-pointer w-full"
+                                                    onClick={header.column.getToggleSortingHandler()}
+                                                >
+                                                    <span className="truncate">{flexRender(header.column.columnDef.header, header.getContext())}</span>
+                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        {{
+                                                            asc: <ChevronUp className="size-3.5" />,
+                                                            desc: <ChevronDown className="size-3.5" />,
+                                                        }[header.column.getIsSorted() as string] ?? (
+                                                                <ChevronsUpDown className="size-3.5 text-muted-foreground/30" />
+                                                            )}
+                                                    </div>
+                                                </div>
+                                            </th>
                                         ))}
                                     </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
+                                ))}
+                            </thead>
+                            <tbody className="relative block" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+                                {rowVirtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
+                                    const row = rows[virtualRow.index]
+                                    return (
+                                        <tr
+                                            key={row.id}
+                                            className="absolute flex hover:bg-primary/[0.02] transition-colors bg-white w-full border-r border-border/40"
+                                            style={{
+                                                transform: `translateY(${virtualRow.start}px)`,
+                                                height: `${virtualRow.size}px`,
+                                            }}
+                                        >
+                                            {row.getVisibleCells().map((cell) => (
+                                                <td
+                                                    key={cell.id}
+                                                    className="px-4 py-2 border-b border-r border-border/40 truncate text-foreground/80 font-medium flex items-center shrink-0 last:border-r-0"
+                                                    style={{ width: cell.column.getSize() }}
+                                                >
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div className="p-2 border-t bg-white text-[10px] text-muted-foreground font-bold uppercase tracking-widest text-center">
                     {rows.length} Total Records

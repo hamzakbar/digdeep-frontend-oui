@@ -254,24 +254,24 @@ function ChatPage() {
   return (
     <div className='flex flex-col h-full relative overflow-hidden bg-white'>
       {/* Top Header */}
-      <header className='h-16 border-b bg-white/50 backdrop-blur-md pl-16 pr-8 flex items-center justify-between sticky top-0 z-30 shrink-0'>
-        <div className='flex items-center gap-6'>
-          <div className='flex items-center gap-2 text-sm font-medium border-r pr-6'>
+      <header className='h-16 border-b bg-white/50 backdrop-blur-md pl-16 pr-8 flex items-center sticky top-0 z-30 shrink-0 w-full'>
+        <div className='flex items-center gap-6 flex-1 min-w-0'>
+          <div className='flex items-center gap-2 text-sm font-medium border-r pr-6 shrink-0 min-w-0'>
             <Link
               to='/dashboard'
-              className='text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5'
+              className='text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 shrink-0'
             >
               <LayoutDashboard className='size-3.5' />
               Dashboard
             </Link>
-            <ChevronRight className='size-3.5 text-muted-foreground/50' />
-            <span className='font-bold text-foreground opacity-80'>
+            <ChevronRight className='size-3.5 text-muted-foreground/50 shrink-0' />
+            <span className='font-bold text-foreground opacity-80 truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px] lg:max-w-md'>
               Session: {session?.name || sessionId.split('-')[0] + '...'}
             </span>
           </div>
 
           {selectedFile && (
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-auto">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-auto shrink-0">
               <TabsList className="bg-slate-100/80 rounded-xl h-10 p-1">
                 <TabsTrigger value="chat" className="rounded-lg px-4 gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
                   <MessageSquare className="size-3.5" />
@@ -366,9 +366,9 @@ function ChatPage() {
         </aside>
 
         {/* Chat / Preview Main Area */}
-        <main className='flex-1 flex flex-col relative bg-white/40 overflow-hidden'>
-          <Tabs value={activeTab} className="h-full flex flex-col">
-            <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0">
+        <main className='flex-1 flex flex-col relative bg-white/40 overflow-hidden min-w-0'>
+          <Tabs value={activeTab} className="h-full flex flex-col min-w-0 overflow-hidden">
+            <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0 min-w-0">
               <div className='flex-1 overflow-y-auto px-8 py-10 space-y-10 scrollbar-hide'>
                 {groupedMessages.map((item) => (
                   <div
