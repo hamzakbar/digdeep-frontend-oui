@@ -140,7 +140,7 @@ function SessionLayout() {
                     <SidebarRail />
                 </Sidebar>
 
-                <SidebarInset className="flex-1 flex flex-col bg-slate-50/50 relative">
+                <SidebarInset className="flex-1 flex flex-col bg-slate-50/50 relative min-w-0 max-w-full">
                     <div className="absolute top-4 left-4 z-[50]">
                         <SidebarTrigger className="h-9 w-9 bg-white/80 backdrop-blur-md shadow-sm border border-border/50 rounded-xl hover:bg-white active:scale-95 transition-all lg:flex" />
                     </div>

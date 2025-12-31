@@ -102,7 +102,7 @@ function FilesPage() {
             )}
 
             {/* Content Area */}
-            <div className="flex-1 overflow-hidden p-8 flex gap-6">
+            <div className="flex-1 overflow-hidden p-8 flex gap-6 min-w-0">
                 {/* Left Sidebar (Visible only when a file is selected) */}
                 {selectedFile && (
                     <div className="w-80 flex flex-col gap-4 animate-in slide-in-from-left-4 duration-500">
@@ -225,7 +225,7 @@ function FilesPage() {
                             </div>
                         </div>
                     ) : (
-                        <Card className="flex-1 rounded-[2.5rem] border-border/40 overflow-hidden shadow-2xl shadow-primary/5 bg-white animate-in zoom-in-95 duration-500">
+                        <Card className="flex-1 min-w-0 rounded-[2.5rem] border-border/40 overflow-hidden shadow-2xl shadow-primary/5 bg-white animate-in zoom-in-95 duration-500">
                             <FilePreview
                                 sessionId={sessionId}
                                 selectedFile={selectedFile}

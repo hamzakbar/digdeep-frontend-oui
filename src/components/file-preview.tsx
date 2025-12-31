@@ -318,7 +318,7 @@ export function FilePreview({
                 <div className="flex-1 overflow-hidden bg-slate-50/50 p-4 md:p-8 flex flex-col min-w-0">
                     <div
                         ref={tableContainerRef}
-                        className="flex-1 overflow-auto rounded-[2rem] border border-border/40 bg-white shadow-2xl shadow-slate-200/50"
+                        className="flex-1 w-full min-w-0 max-w-full overflow-auto rounded-[2rem] border border-border/40 bg-white shadow-2xl shadow-slate-200/50"
                     >
                         <table
                             className="text-[13px] border-separate border-spacing-0 min-w-full"

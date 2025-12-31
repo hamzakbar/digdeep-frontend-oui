@@ -508,7 +508,7 @@ function ChatPage() {
             </TabsContent>
 
             {selectedFile && (
-              <TabsContent value="preview" className="flex-1 m-0 animate-in slide-in-from-right-4 duration-500 overflow-hidden">
+              <TabsContent value="preview" className="flex-1 m-0 animate-in slide-in-from-right-4 duration-500 overflow-hidden min-w-0">
                 <FilePreview
                   sessionId={sessionId}
                   selectedFile={selectedFile}
