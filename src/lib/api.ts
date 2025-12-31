@@ -104,6 +104,25 @@ export const fetchFiles = async (sessionId: string): Promise<SessionAsset[]> => 
     return result?.files || []
 }
 
+export const fetchFileContent = async (
+    sessionId: string | undefined,
+    shareToken: string | undefined,
+    visitorId: string | undefined,
+    fileName: string
+) => {
+    let path = ''
+    if (shareToken && visitorId) {
+        path = `/public/${shareToken}/files/${visitorId}/${encodeURIComponent(
+            fileName
+        )}`
+    } else if (sessionId) {
+        path = `/session/${sessionId}/outputs/${encodeURIComponent(fileName)}`
+    } else {
+        throw new Error('Session ID or Share Token must be provided.')
+    }
+    return apiFetch(path, { headers: { Accept: '*/*' } })
+}
+
 async function _streamer(
     endpoint: string,
     body: object,
