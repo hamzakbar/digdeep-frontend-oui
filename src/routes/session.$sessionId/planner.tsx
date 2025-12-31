@@ -10,7 +10,7 @@ function PlannerPage() {
     const { sessionId } = Route.useParams()
 
     return (
-        <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="p-8 pl-16 max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center justify-between">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-black tracking-tight">Project Planner</h1>

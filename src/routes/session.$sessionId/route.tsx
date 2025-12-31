@@ -12,6 +12,7 @@ import {
     SidebarMenu,
     SidebarMenuItem,
     SidebarMenuButton,
+    SidebarTrigger,
     SidebarInset,
     SidebarRail,
 } from '@/components/ui/sidebar'
@@ -19,7 +20,6 @@ import {
     MessageSquare,
     FileText,
     ArrowLeft,
-    Settings,
     Database,
     Sparkles,
     ClipboardList
@@ -72,12 +72,12 @@ function SessionLayout() {
             <div className="flex h-screen w-full bg-background overflow-hidden text-foreground">
                 <Sidebar collapsible="icon" className="border-r bg-white/50 backdrop-blur-xl">
                     <SidebarHeader className="p-4 pt-6">
-                        <Link to="/" className="flex items-center gap-3 group px-2">
+                        <Link to="/" className="flex items-center gap-3 group px-2 group-data-[collapsible=icon]:hidden">
                             <div className="relative w-9 h-9 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105 shadow-xl shadow-primary/20">
                                 <Database className="text-primary-foreground size-5" />
                                 <Sparkles className="absolute -top-1 -right-1 size-3.5 text-accent animate-pulse" />
                             </div>
-                            <div className="flex flex-col group-data-[collapsible=icon]:hidden overflow-hidden">
+                            <div className="flex flex-col overflow-hidden">
                                 <span className="font-bold tracking-tight text-lg leading-tight">DigDeep</span>
                                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest leading-tight">Platform</span>
                             </div>
@@ -134,14 +134,16 @@ function SessionLayout() {
                                     <p className="text-xs font-bold truncate leading-tight">{userName}</p>
                                     <p className="text-[10px] text-muted-foreground truncate leading-tight">{userEmail}</p>
                                 </div>
-                                <Settings className="size-4 text-muted-foreground hover:text-foreground cursor-pointer transition-colors group-data-[collapsible=icon]:hidden shrink-0" />
                             </div>
                         </div>
                     </SidebarFooter>
                     <SidebarRail />
                 </Sidebar>
 
-                <SidebarInset className="flex-1 flex flex-col bg-slate-50/50">
+                <SidebarInset className="flex-1 flex flex-col bg-slate-50/50 relative">
+                    <div className="absolute top-4 left-4 z-[50]">
+                        <SidebarTrigger className="h-9 w-9 bg-white/80 backdrop-blur-md shadow-sm border border-border/50 rounded-xl hover:bg-white active:scale-95 transition-all lg:flex" />
+                    </div>
                     <Outlet />
                 </SidebarInset>
             </div>

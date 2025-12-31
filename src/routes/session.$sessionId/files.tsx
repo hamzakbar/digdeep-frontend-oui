@@ -27,7 +27,7 @@ function FilesPage() {
     })
 
     return (
-        <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="p-8 pl-16 max-w-6xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black tracking-tight">Session Files</h1>

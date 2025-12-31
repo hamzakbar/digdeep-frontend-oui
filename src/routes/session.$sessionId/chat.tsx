@@ -114,7 +114,7 @@ function ChatPage() {
   return (
     <div className="flex flex-col h-full relative overflow-hidden bg-white">
       {/* Top Header */}
-      <header className="h-16 border-b bg-white/50 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-30 shrink-0">
+      <header className="h-16 border-b bg-white/50 backdrop-blur-md pl-16 pr-8 flex items-center justify-between sticky top-0 z-30 shrink-0">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
             <LayoutDashboard className="size-3.5" />
