@@ -401,7 +401,7 @@ export function ChatPage() {
 
                     <div
                       className={cn(
-                        'group relative space-y-2 flex-1',
+                        'group relative space-y-2 flex-1 min-w-0',
                         item.type === 'user'
                           ? 'items-end text-right'
                           : 'items-start text-left'
