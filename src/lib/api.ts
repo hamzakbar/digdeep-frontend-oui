@@ -91,3 +91,61 @@ export const startSession = ({ name }: { name: string }): Promise<Session> => {
         body: JSON.stringify({ name }),
     })
 }
+
+export interface SessionAsset {
+    name: string
+    size: number
+    fmt: string
+    download_url?: string
+}
+
+export const fetchFiles = async (sessionId: string): Promise<SessionAsset[]> => {
+    const result = await apiFetch(`/session/${sessionId}/outputs`)
+    return result?.files || []
+}
+
+async function _streamer(
+    endpoint: string,
+    body: object,
+    onChunk: (chunk: string) => void,
+    signal: AbortSignal
+) {
+    const url = `${import.meta.env.VITE_API_URL}${endpoint}`
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+    }
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal,
+        credentials: 'include'
+    })
+
+    if (!response.body) throw new Error('No response body for streaming')
+    if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Streaming task failed')
+    }
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        onChunk(decoder.decode(value, { stream: true }))
+    }
+}
+
+export async function streamTask(
+    sessionId: string,
+    task: string,
+    onChunk: (chunk: string) => void,
+    signal: AbortSignal
+) {
+    const endpoint = `/session/run_task_v2/${sessionId}`
+    const body = { task, log_iter: 3, red_report: false }
+    await _streamer(endpoint, body, onChunk, signal)
+}
