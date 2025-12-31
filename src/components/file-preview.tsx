@@ -373,7 +373,7 @@ export function FilePreview({
                         </Button>
                     </div>
                 )}
-                <div className="flex-1 overflow-auto p-8 lg:p-12 prose prose-sm dark:prose-invert max-w-none bg-slate-50/20">
+                <div className="flex-1 overflow-auto p-8 lg:p-12 prose dark:prose-invert max-w-none bg-slate-50/20 text-[15px]">
                     <MarkdownFormatter textContent={textContent} />
                 </div>
             </div>

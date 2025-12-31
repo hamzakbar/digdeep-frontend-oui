@@ -40,7 +40,7 @@ function FilesPage() {
         return (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
                 <Loader2 className="size-10 text-primary/40 animate-spin" />
-                <p className="text-muted-foreground font-medium animate-pulse">Fetching session assets...</p>
+                <p className="text-muted-foreground font-medium animate-pulse">Fetching files...</p>
             </div>
         )
     }
@@ -81,7 +81,7 @@ function FilesPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-black tracking-tight">Session Files</h1>
-                            <p className="text-muted-foreground mt-1 text-sm font-medium">Manage and view all data assets generated in this session.</p>
+                            <p className="text-muted-foreground mt-1 text-sm font-medium">Manage and view all files generated in this session.</p>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="relative">
@@ -109,7 +109,7 @@ function FilesPage() {
                         <div className="flex items-center justify-between px-1">
                             <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/80 flex items-center gap-2">
                                 <HardDrive className="size-3.5" />
-                                Assets ({files.length})
+                                Files ({files.length})
                             </h2>
                             <Button variant="ghost" size="icon" className="size-8 rounded-lg" onClick={() => setSelectedFile(null)}>
                                 <X className="size-4" />
@@ -159,7 +159,7 @@ function FilesPage() {
                                 <div className="p-1.5 bg-primary/5 rounded-lg">
                                     <HardDrive className="size-4 text-primary" />
                                 </div>
-                                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/80">Output Assets ({files.length})</h2>
+                                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/80">Files ({files.length})</h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-20">
                                 {files.map((file) => {

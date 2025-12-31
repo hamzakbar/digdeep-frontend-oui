@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { fetchFiles, streamTask } from '@/lib/api'
+import { fetchFiles, streamTask, fetchSession } from '@/lib/api'
 import {
   Send,
   Sparkles,
@@ -74,6 +74,11 @@ function ChatPage() {
   const { data: files } = useQuery({
     queryKey: ['session-files-mini', sessionId],
     queryFn: () => fetchFiles(sessionId),
+  })
+
+  const { data: session } = useQuery({
+    queryKey: ['session', sessionId],
+    queryFn: () => fetchSession(sessionId),
   })
 
   const scrollToBottom = () => {
@@ -261,7 +266,7 @@ function ChatPage() {
             </Link>
             <ChevronRight className='size-3.5 text-muted-foreground/50' />
             <span className='font-bold text-foreground opacity-80'>
-              Session: {sessionId.split('-')[0]}...
+              Session: {session?.name || sessionId.split('-')[0] + '...'}
             </span>
           </div>
 

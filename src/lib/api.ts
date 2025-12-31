@@ -92,6 +92,10 @@ export const startSession = ({ name }: { name: string }): Promise<Session> => {
     })
 }
 
+export const fetchSession = async (sessionId: string): Promise<Session> => {
+    return apiFetch(`/session/${sessionId}`)
+}
+
 export interface SessionAsset {
     name: string
     size: number
