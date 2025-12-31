@@ -4,10 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchFiles } from '@/lib/api'
 import {
     Search,
-    Filter,
     Download,
-    MoreVertical,
-    ExternalLink,
     Loader2,
     HardDrive,
     X,
@@ -26,15 +23,40 @@ export const Route = createFileRoute('/session/$sessionId/files')({
 function FilesPage() {
     const { sessionId } = Route.useParams()
     const [selectedFile, setSelectedFile] = useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
+
     const { data: files, isLoading, error } = useQuery({
         queryKey: ['session-files', sessionId],
         queryFn: () => fetchFiles(sessionId),
     })
 
     const handleDownload = async (fileName: string) => {
-        // Implement download logic if needed here, although FilePreview has it too
-        console.log('Downloading', fileName)
+        try {
+            const url = `${import.meta.env.VITE_API_URL}/session/${sessionId}/outputs/${encodeURIComponent(fileName)}`
+            const response = await fetch(url, {
+                headers: { 'Accept': '*/*' },
+                credentials: 'include'
+            })
+
+            if (!response.ok) throw new Error('Download failed')
+
+            const blob = await response.blob()
+            const downloadUrl = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = downloadUrl
+            a.download = fileName
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            window.URL.revokeObjectURL(downloadUrl)
+        } catch (error) {
+            console.error('Failed to download file:', error)
+        }
     }
+
+    const filteredFiles = files?.filter(file =>
+        file.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || []
 
     if (isLoading) {
         return (
@@ -77,7 +99,7 @@ function FilesPage() {
         <div className="h-full flex flex-col overflow-hidden">
             {/* Header */}
             {!selectedFile && (
-                <div className="p-8 pb-0 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="p-8 pb-0 pl-14 animate-in fade-in slide-in-from-top-2 duration-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-black tracking-tight">Session Files</h1>
@@ -89,13 +111,11 @@ function FilesPage() {
                                 <input
                                     type="text"
                                     placeholder="Search files..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     className="pl-9 pr-4 h-10 w-64 rounded-xl border bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 text-sm transition-all shadow-sm"
                                 />
                             </div>
-                            <Button variant="outline" className="rounded-xl px-4 bg-white shadow-sm border-border/60">
-                                <Filter className="size-4 mr-2" />
-                                Filter
-                            </Button>
                         </div>
                     </div>
                 </div>
@@ -154,75 +174,64 @@ function FilesPage() {
                 {/* Main Content */}
                 <div className="flex-1 overflow-hidden flex flex-col min-w-0">
                     {!selectedFile ? (
-                        <div className="space-y-6 animate-in fade-in duration-700">
+                        <div className="space-y-4 animate-in fade-in duration-700">
                             <div className="flex items-center gap-3 px-1">
                                 <div className="p-1.5 bg-primary/5 rounded-lg">
                                     <HardDrive className="size-4 text-primary" />
                                 </div>
-                                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/80">Files ({files.length})</h2>
+                                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/80">Files ({filteredFiles.length})</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-20">
-                                {files.map((file) => {
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-20">
+                                {filteredFiles.map((file) => {
                                     const { Icon, color, bgColor } = getIconForFile(file.name)
                                     return (
                                         <Card
                                             key={file.name}
-                                            className="p-5 rounded-3xl hover:border-primary/40 transition-all group bg-white shadow-sm hover:shadow-xl hover:shadow-primary/5 border-border/50 cursor-pointer"
+                                            className="p-4 rounded-2xl hover:border-primary/40 transition-all group bg-white shadow-sm hover:shadow-xl hover:shadow-primary/5 border-border/50 cursor-pointer flex flex-col justify-between h-[150px]"
                                             onClick={() => setSelectedFile(file.name)}
                                         >
-                                            <div className="flex items-start justify-between mb-5">
-                                                <div className={cn("size-12 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform shadow-inner", bgColor)}>
-                                                    <Icon className={cn("size-6", color)} />
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className={cn("size-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform shadow-inner", bgColor)}>
+                                                    <Icon className={cn("size-5", color)} />
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-muted transition-colors" onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // Handle more options
-                                                }}>
-                                                    <MoreVertical className="size-4" />
-                                                </Button>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <h3 className="font-bold text-sm truncate pr-4 text-foreground/80" title={file.name}>{file.name}</h3>
-                                                <div className="flex items-center gap-2">
-                                                    <Badge variant="secondary" className="text-[10px] h-5 px-2 font-bold uppercase tracking-tighter rounded-lg bg-muted/60 text-muted-foreground border-0">
-                                                        {file.fmt}
-                                                    </Badge>
-                                                    <span className="text-[11px] text-muted-foreground font-semibold opacity-70">
-                                                        {(file.size / 1024).toFixed(1)} KB
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-8 flex items-center gap-2">
                                                 <Button
-                                                    variant="outline"
+                                                    variant="secondary"
                                                     size="sm"
-                                                    className="flex-1 rounded-2xl text-[11px] font-bold h-9 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all duration-300 border-border/60"
+                                                    className="rounded-full h-8 px-4 bg-black text-white hover:bg-black/80 text-[10px] font-bold transition-all shadow-lg active:scale-95"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleDownload(file.name);
                                                     }}
                                                 >
-                                                    <Download className="size-3.5 mr-2 transition-transform group-hover:-translate-y-0.5" />
+                                                    <Download className="size-3.5 mr-1.5" />
                                                     Download
                                                 </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="size-9 rounded-2xl border-border/60 hover:bg-primary/5 hover:border-primary/20 transition-all"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedFile(file.name);
-                                                    }}
-                                                >
-                                                    <ExternalLink className="size-3.5 text-muted-foreground" />
-                                                </Button>
+                                            </div>
+
+                                            <div className="space-y-1 mb-auto">
+                                                <h3 className="font-bold text-[13px] leading-snug line-clamp-2 text-foreground/80" title={file.name}>{file.name}</h3>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="secondary" className="text-[9px] h-4 px-1.5 font-bold uppercase tracking-tighter rounded-md bg-muted/60 text-muted-foreground border-0">
+                                                        {file.fmt}
+                                                    </Badge>
+                                                    <span className="text-[10px] text-muted-foreground font-semibold opacity-70">
+                                                        {(file.size / 1024).toFixed(1)} KB
+                                                    </span>
+                                                </div>
                                             </div>
                                         </Card>
                                     )
                                 })}
                             </div>
+                            {filteredFiles.length === 0 && (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="size-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                                        <Search className="size-8 text-muted-foreground opacity-20" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-muted-foreground">No matches found</h3>
+                                    <p className="text-sm text-muted-foreground/60">Try adjusting your search query.</p>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <Card className="flex-1 min-w-0 rounded-[2.5rem] border-border/40 overflow-hidden shadow-2xl shadow-primary/5 bg-white animate-in zoom-in-95 duration-500">
@@ -238,4 +247,3 @@ function FilesPage() {
         </div>
     )
 }
-
