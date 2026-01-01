@@ -53,7 +53,7 @@ export function ThinkingProcess({
                 onValueChange={setOpenValue}
             >
                 <AccordionItem value='thought-process' className='border-none'>
-                    <AccordionTrigger className='py-2 px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 hover:no-underline hover:text-primary transition-colors bg-slate-50/50 rounded-2xl'>
+                    <AccordionTrigger className='py-2 px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 hover:no-underline hover:text-primary transition-colors bg-muted/50 rounded-2xl'>
                         <div className="flex items-center gap-2">
                             {isStreaming && <Loader2 className="size-3 animate-spin" />}
                             {triggerText}

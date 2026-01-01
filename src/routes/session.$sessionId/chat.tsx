@@ -257,9 +257,9 @@ export function ChatPage() {
   }, [messages])
 
   return (
-    <div className='flex flex-col h-full relative overflow-hidden bg-white'>
+    <div className='flex flex-col h-full relative overflow-hidden bg-background'>
       {/* Top Header */}
-      <header className='h-16 border-b bg-white/50 backdrop-blur-md pl-16 pr-8 flex items-center sticky top-0 z-30 shrink-0 w-full'>
+      <header className='h-16 border-b bg-background/50 backdrop-blur-md pl-16 pr-8 flex items-center sticky top-0 z-30 shrink-0 w-full'>
         <div className='flex items-center gap-6 flex-1 min-w-0'>
           <div className='flex items-center gap-2 text-sm font-medium border-r pr-6 shrink-0 min-w-0'>
             <Link
@@ -276,12 +276,12 @@ export function ChatPage() {
 
           {selectedFile && (
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-auto shrink-0">
-              <TabsList className="bg-slate-100/80 rounded-xl h-10 p-1">
-                <TabsTrigger value="chat" className="rounded-lg px-4 gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsList className="bg-muted/80 rounded-xl h-10 p-1">
+                <TabsTrigger value="chat" className="rounded-lg px-4 gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                   <MessageSquare className="size-3.5" />
                   Chat
                 </TabsTrigger>
-                <TabsTrigger value="preview" className="rounded-lg px-4 gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <TabsTrigger value="preview" className="rounded-lg px-4 gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                   <FileIcon className="size-3.5" />
                   Preview
                 </TabsTrigger>
@@ -305,7 +305,7 @@ export function ChatPage() {
 
       <div className='flex-1 flex overflow-hidden'>
         {/* Left Data Sidebar Sub-pane */}
-        <aside className='w-80 border-r bg-slate-50/30 flex flex-col shrink-0 overflow-y-auto hidden lg:flex p-6 space-y-8'>
+        <aside className='w-80 border-r flex flex-col shrink-0 overflow-y-auto hidden lg:flex p-6 space-y-8'>
           <section className='space-y-4'>
             <div className='flex items-center justify-between px-1'>
               <div className='flex items-center gap-2'>
@@ -338,7 +338,7 @@ export function ChatPage() {
                       'flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer group',
                       isSelected
                         ? 'bg-primary border-primary shadow-lg shadow-primary/10 text-white'
-                        : 'bg-white border-border/40 shadow-sm hover:border-primary/30'
+                        : 'bg-background border-border/40 shadow-sm hover:border-primary/30'
                     )}
                   >
                     <div className={cn(
@@ -370,7 +370,7 @@ export function ChatPage() {
         </aside>
 
         {/* Chat / Preview Main Area */}
-        <main className='flex-1 flex flex-col relative bg-white/40 overflow-hidden min-w-0'>
+        <main className='flex-1 flex flex-col relative bg-background/40 overflow-hidden min-w-0'>
           <Tabs value={activeTab} className="h-full flex flex-col min-w-0 overflow-hidden">
             <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0 min-w-0">
               <div className='flex-1 overflow-y-auto px-8 py-10 space-y-10 scrollbar-hide'>
@@ -387,7 +387,7 @@ export function ChatPage() {
                         'size-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg transition-transform hover:scale-105',
                         item.type === 'user'
                           ? 'bg-primary text-primary-foreground shadow-primary/20'
-                          : 'bg-white border text-primary shadow-slate-100'
+                          : 'bg-card border text-primary shadow-sm'
                       )}
                     >
                       {item.type === 'user' ? (
@@ -412,7 +412,7 @@ export function ChatPage() {
                       )}
 
                       {item.type === 'bot-simple' && (
-                        <div className='px-6 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium bg-white border border-border/50 text-foreground/80 rounded-tl-none shadow-slate-100 w-full'>
+                        <div className='px-6 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium bg-card border border-border/50 text-foreground/80 rounded-tl-none w-full'>
                           <MarkdownFormatter textContent={item.content || ''} />
                         </div>
                       )}
@@ -426,7 +426,7 @@ export function ChatPage() {
                             />
                           )}
                           {item.finalAnswer && (
-                            <div className='px-6 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium bg-white border border-border/50 text-foreground/80 rounded-tl-none shadow-slate-100 w-full'>
+                            <div className='px-6 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium bg-card border border-border/50 text-foreground/80 rounded-tl-none w-full'>
                               <MarkdownFormatter textContent={item.finalAnswer} />
                             </div>
                           )}
@@ -451,10 +451,10 @@ export function ChatPage() {
                       item.type === 'bot-complex' || item.type === 'bot-simple'
                   ) && (
                     <div className='flex gap-4 max-w-4xl animate-in fade-in slide-in-from-bottom-2 duration-500'>
-                      <div className='size-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg bg-white border text-primary shadow-slate-100'>
+                      <div className='size-10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg bg-card border text-primary shadow-sm'>
                         <Bot className='size-5' />
                       </div>
-                      <div className='flex-1 px-6 py-4 rounded-3xl bg-slate-50 border border-dashed border-slate-200 flex items-center gap-3'>
+                      <div className='flex-1 px-6 py-4 rounded-3xl bg-muted/50 border border-dashed border-border flex items-center gap-3'>
                         <Loader2 className='size-4 animate-spin text-primary' />
                         <span className='text-sm font-bold uppercase tracking-widest text-muted-foreground/60 animate-pulse'>
                           Agent is thinking...
@@ -466,10 +466,9 @@ export function ChatPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Chat Input Floating Area */}
               <div className='p-8 pt-0 z-20 shrink-0'>
-                <div className='max-w-4xl mx-auto bg-white/70 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] p-3 shadow-2xl shadow-slate-200/50 flex items-center gap-3 ring-1 ring-black/5'>
-                  <div className='p-2.5 rounded-2xl bg-slate-50 border border-border/40 text-primary/40 hover:text-primary transition-colors cursor-pointer hidden sm:flex'>
+                <div className='max-w-4xl mx-auto bg-background/70 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] p-3 shadow-2xl shadow-primary/5 flex items-center gap-3 ring-1 ring-black/5'>
+                  <div className='p-2.5 rounded-2xl bg-muted border border-border/40 text-primary/40 hover:text-primary transition-colors cursor-pointer hidden sm:flex'>
                     <Sparkles className='size-5' />
                   </div>
 

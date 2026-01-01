@@ -23,6 +23,8 @@ import {
     Search,
     Loader2,
 } from 'lucide-react'
+import { getIconForFile } from '@/lib/file-utils'
+import { cn } from '@/lib/utils'
 import { fetchFileContent } from '@/lib/api'
 import Papa from 'papaparse'
 import { MarkdownFormatter } from './markdown-formatter'
@@ -214,15 +216,23 @@ export function FilePreview({
         return (
             <div className="h-full w-full flex flex-col">
                 {!hideHeader && (
-                    <div className="flex items-center justify-between p-4 border-b bg-white/50 backdrop-blur-sm sticky top-0 z-10">
-                        <h2 className="font-bold text-sm truncate pr-4">{selectedFile}</h2>
-                        <Button size="sm" variant="outline" className="rounded-xl h-8 text-[11px] font-bold" onClick={handleDownload}>
+                    <div className="flex items-center justify-between p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0 shadow-inner", getIconForFile(selectedFile).bgColor)}>
+                                {(() => {
+                                    const { Icon, color } = getIconForFile(selectedFile)
+                                    return <Icon className={cn("size-4", color)} />
+                                })()}
+                            </div>
+                            <h2 className="font-bold text-sm truncate text-foreground/90">{selectedFile}</h2>
+                        </div>
+                        <Button size="sm" variant="outline" className="rounded-xl h-8 text-[11px] font-bold shadow-sm" onClick={handleDownload}>
                             <Download className="size-3.5 mr-2" />
                             Download
                         </Button>
                     </div>
                 )}
-                <div className="flex-1 p-8 flex items-center justify-center bg-slate-50/50">
+                <div className="flex-1 p-8 flex items-center justify-center bg-muted/30">
                     <img
                         src={imageUrl}
                         alt={selectedFile}
@@ -235,8 +245,8 @@ export function FilePreview({
 
     if (tableData.length > 0) {
         return (
-            <div className="h-full w-full flex flex-col bg-white overflow-hidden min-w-0">
-                <div className="flex items-center gap-3 p-4 border-b bg-white/80 backdrop-blur-md sticky top-0 z-10 shrink-0 w-full overflow-hidden">
+            <div className="h-full w-full flex flex-col bg-background overflow-hidden min-w-0">
+                <div className="flex items-center gap-3 p-4 border-b bg-background/80 backdrop-blur-md sticky top-0 z-10 shrink-0 w-full overflow-hidden">
                     <div className="relative flex-1 max-w-sm min-w-0">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground shrink-0" />
                         <Input
@@ -306,7 +316,7 @@ export function FilePreview({
                         <Button
                             size="sm"
                             variant="outline"
-                            className="rounded-xl h-9 text-[11px] font-bold border-border/60 hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0 shadow-lg shadow-slate-200/50"
+                            className="rounded-xl h-9 text-[11px] font-bold border-border/60 hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0 shadow-lg shadow-primary/5"
                             onClick={handleDownload}
                         >
                             <Download className="size-3.5 mr-2" />
@@ -315,16 +325,16 @@ export function FilePreview({
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-hidden bg-slate-50/50 p-4 md:p-8 flex flex-col min-w-0">
+                <div className="flex-1 overflow-hidden bg-muted/10 p-4 md:p-8 flex flex-col min-w-0">
                     <div
                         ref={tableContainerRef}
-                        className="flex-1 w-full min-w-0 max-w-full overflow-auto rounded-[2rem] border border-border/40 bg-white shadow-2xl shadow-slate-200/50"
+                        className="flex-1 w-full min-w-0 max-w-full overflow-auto rounded-[2rem] border border-border/40 bg-background shadow-2xl shadow-primary/5"
                     >
                         <table
                             className="text-[13px] border-separate border-spacing-0 min-w-full"
                             style={{ width: table.getTotalSize() }}
                         >
-                            <thead className="sticky top-0 z-10 bg-white">
+                            <thead className="sticky top-0 z-10 bg-background text-foreground/80">
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <tr key={headerGroup.id} className="flex">
                                         {headerGroup.headers.map((header) => (
@@ -358,7 +368,7 @@ export function FilePreview({
                                     return (
                                         <tr
                                             key={row.id}
-                                            className="absolute flex hover:bg-primary/[0.02] transition-colors bg-white w-full border-r border-border/40"
+                                            className="absolute flex hover:bg-primary/[0.02] transition-colors bg-background w-full border-r border-border/40"
                                             style={{
                                                 transform: `translateY(${virtualRow.start}px)`,
                                                 height: `${virtualRow.size}px`,
@@ -380,7 +390,7 @@ export function FilePreview({
                         </table>
                     </div>
                 </div>
-                <div className="p-2 border-t bg-white text-[10px] text-muted-foreground font-bold uppercase tracking-widest text-center">
+                <div className="p-2 border-t bg-background text-[10px] text-muted-foreground font-bold uppercase tracking-widest text-center">
                     {rows.length} Total Records
                 </div>
             </div>
@@ -390,11 +400,19 @@ export function FilePreview({
     if (textContent) {
         if (selectedFile?.endsWith('.html')) {
             return (
-                <div className="h-full w-full flex flex-col bg-white">
+                <div className="h-full w-full flex flex-col bg-background">
                     {!hideHeader && (
-                        <div className="flex items-center justify-between p-4 border-b bg-white/50 backdrop-blur-sm sticky top-0 z-10">
-                            <h2 className="font-bold text-sm truncate pr-4">{selectedFile}</h2>
-                            <Button size="sm" variant="outline" className="rounded-xl h-8 text-[11px] font-bold" onClick={handleDownload}>
+                        <div className="flex items-center justify-between p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0 shadow-inner", getIconForFile(selectedFile).bgColor)}>
+                                    {(() => {
+                                        const { Icon, color } = getIconForFile(selectedFile)
+                                        return <Icon className={cn("size-4", color)} />
+                                    })()}
+                                </div>
+                                <h2 className="font-bold text-sm truncate text-foreground/90">{selectedFile}</h2>
+                            </div>
+                            <Button size="sm" variant="outline" className="rounded-xl h-8 text-[11px] font-bold shadow-sm" onClick={handleDownload}>
                                 <Download className="size-3.5 mr-2" />
                                 Download
                             </Button>
@@ -411,17 +429,25 @@ export function FilePreview({
         }
 
         return (
-            <div className="h-full w-full flex flex-col bg-white">
+            <div className="h-full w-full flex flex-col bg-background">
                 {!hideHeader && (
-                    <div className="flex items-center justify-between p-4 border-b bg-white/50 backdrop-blur-sm sticky top-0 z-10 leading-none">
-                        <h2 className="font-bold text-sm truncate pr-4">{selectedFile}</h2>
-                        <Button size="sm" variant="outline" className="rounded-xl h-8 text-[11px] font-bold" onClick={handleDownload}>
+                    <div className="flex items-center justify-between p-4 border-b bg-background/50 backdrop-blur-sm sticky top-0 z-10 leading-none">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0 shadow-inner", getIconForFile(selectedFile).bgColor)}>
+                                {(() => {
+                                    const { Icon, color } = getIconForFile(selectedFile)
+                                    return <Icon className={cn("size-4", color)} />
+                                })()}
+                            </div>
+                            <h2 className="font-bold text-sm truncate text-foreground/90 leading-none">{selectedFile}</h2>
+                        </div>
+                        <Button size="sm" variant="outline" className="rounded-xl h-8 text-[11px] font-bold shadow-sm" onClick={handleDownload}>
                             <Download className="size-3.5 mr-2" />
                             Download
                         </Button>
                     </div>
                 )}
-                <div className="flex-1 overflow-auto p-8 lg:p-12 w-full max-w-full bg-slate-50/10">
+                <div className="flex-1 overflow-auto p-8 lg:p-12 w-full max-w-full bg-muted/5">
                     <MarkdownFormatter textContent={textContent} />
                 </div>
             </div>

@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from 'react'
+import { ModeToggle } from '@/components/mode-toggle'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
@@ -75,7 +76,7 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="border-b bg-white/50 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b bg-background/50 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group cursor-pointer">
             <div className="relative w-8 h-8 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
@@ -86,17 +87,20 @@ function DashboardPage() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <Button
-              size="sm"
-              className="rounded-xl px-4"
-              onClick={() => setIsDialogOpen(true)}
-              disabled={isCreating}
-            >
-              {isCreating ? <Loader2 className="size-4 animate-spin" /> : 'New Session'}
-            </Button>
+            <div className="flex items-center gap-3">
+              <ModeToggle />
+              <Button
+                size="sm"
+                className="rounded-xl px-4"
+                onClick={() => setIsDialogOpen(true)}
+                disabled={isCreating}
+              >
+                {isCreating ? <Loader2 className="size-4 animate-spin" /> : 'New Session'}
+              </Button>
+            </div>
             <div className="flex items-center gap-2 ml-2">
               <div
-                className="size-10 rounded-full bg-gradient-to-tr from-primary via-primary/90 to-accent/30 border-2 border-white shadow-xl flex items-center justify-center font-bold text-white text-xs"
+                className="size-9 rounded-full bg-gradient-to-tr from-primary to-primary/80 border-2 border-border shadow-xl flex items-center justify-center text-[11px] font-bold text-white"
               >
                 {initials}
               </div>
@@ -154,7 +158,7 @@ function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data?.data?.map((session) => (
-              <Card key={session.session_id} className="group hover:border-primary/30 transition-all duration-300 rounded-3xl p-6 relative overflow-hidden flex flex-col h-full bg-white shadow-sm border-border/50">
+              <Card key={session.session_id} className="group hover:border-primary/30 transition-all duration-300 rounded-3xl p-6 relative overflow-hidden flex flex-col h-full bg-card shadow-sm border-border/50">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110"></div>
 
                 <div className="flex justify-between items-start mb-4 relative z-10">

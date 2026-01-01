@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StreamingProvider } from '@/contexts/streaming-context'
+import { ModeToggle } from '@/components/mode-toggle'
 
 export const Route = createFileRoute('/session/$sessionId')({
     beforeLoad: async () => {
@@ -66,7 +67,7 @@ function SessionLayout() {
         <StreamingProvider>
             <SidebarProvider>
                 <div className="flex h-screen w-full bg-background overflow-hidden text-foreground">
-                    <Sidebar collapsible="icon" className="border-r bg-white/50 backdrop-blur-xl">
+                    <Sidebar collapsible="icon" className="border-r bg-sidebar/50 backdrop-blur-xl">
                         <SidebarHeader className="p-4 pt-6">
                             <Link to="/" className="flex items-center gap-3 group px-2 group-data-[collapsible=icon]:hidden">
                                 <div className="relative w-9 h-9 rounded-xl bg-primary flex items-center justify-center transition-transform group-hover:scale-105 shadow-xl shadow-primary/20">
@@ -123,12 +124,15 @@ function SessionLayout() {
 
                             <div className="p-3 bg-muted/40 rounded-2xl border border-border/50 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:border-0 transition-all">
                                 <div className="flex items-center gap-3 px-1">
-                                    <div className="size-9 shrink-0 rounded-full bg-gradient-to-tr from-primary to-primary/80 border-2 border-white shadow-xl flex items-center justify-center text-[11px] font-bold text-white">
+                                    <div className="size-9 shrink-0 rounded-full bg-gradient-to-tr from-primary to-primary/80 border-2 border-border shadow-xl flex items-center justify-center text-[11px] font-bold text-white">
                                         {initials}
                                     </div>
                                     <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden overflow-hidden">
                                         <p className="text-xs font-bold truncate leading-tight">{userName}</p>
                                         <p className="text-[10px] text-muted-foreground truncate leading-tight">{userEmail}</p>
+                                    </div>
+                                    <div className="group-data-[collapsible=icon]:hidden">
+                                        <ModeToggle />
                                     </div>
                                 </div>
                             </div>
@@ -136,9 +140,9 @@ function SessionLayout() {
                         <SidebarRail />
                     </Sidebar>
 
-                    <SidebarInset className="flex-1 flex flex-col bg-slate-50/50 relative min-w-0 max-w-full">
-                        <div className="absolute top-4 left-4 z-[50]">
-                            <SidebarTrigger className="h-9 w-9 bg-white/80 backdrop-blur-md shadow-sm border border-border/50 rounded-xl hover:bg-white active:scale-95 transition-all lg:flex" />
+                    <SidebarInset className="flex-1 flex flex-col bg-muted/20 relative min-w-0 max-w-full">
+                        <div className="absolute top-4 left-4 z-[50] flex items-center gap-2">
+                            <SidebarTrigger className="h-9 w-9 bg-background/80 backdrop-blur-md shadow-sm border border-border/50 rounded-xl hover:bg-background/90 active:scale-95 transition-all lg:flex" />
                         </div>
                         <Outlet />
                     </SidebarInset>

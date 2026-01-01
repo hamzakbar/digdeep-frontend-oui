@@ -116,7 +116,7 @@ function FilesPage() {
                                     placeholder="Search files..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 h-10 w-64 rounded-xl border bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 text-sm transition-all shadow-sm"
+                                    className="pl-9 pr-4 h-10 w-64 rounded-xl border bg-muted/20 focus:outline-none focus:ring-4 focus:ring-primary/5 text-sm transition-all shadow-sm border-border/50"
                                 />
                             </div>
                         </div>
@@ -149,21 +149,21 @@ function FilesPage() {
                                         className={cn(
                                             "w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left group",
                                             isSelected
-                                                ? "bg-primary border-primary shadow-lg shadow-primary/20 text-white"
-                                                : "bg-white border-border/50 hover:border-primary/40 hover:shadow-md"
+                                                ? "bg-primary/10 border-primary/50 shadow-sm text-primary"
+                                                : "bg-card/40 border-border/40 hover:border-primary/30 hover:bg-card/60"
                                         )}
                                     >
                                         <div className={cn(
-                                            "size-9 rounded-xl flex items-center justify-center shrink-0 transition-colors",
-                                            isSelected ? "bg-white/20" : bgColor
+                                            "size-9 rounded-xl flex items-center justify-center shrink-0 transition-all shadow-inner",
+                                            isSelected ? "bg-primary/20 scale-105" : bgColor
                                         )}>
-                                            <Icon className={cn("size-5", isSelected ? "text-white" : color)} />
+                                            <Icon className={cn("size-5", isSelected ? "text-primary" : color)} />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className={cn("text-xs font-bold truncate", isSelected ? "text-white" : "text-foreground/80")}>
+                                            <p className={cn("text-xs font-bold truncate transition-colors", isSelected ? "text-primary" : "text-foreground/80")}>
                                                 {file.name}
                                             </p>
-                                            <p className={cn("text-[10px] font-medium opacity-60", isSelected ? "text-white/80" : "text-muted-foreground")}>
+                                            <p className={cn("text-[10px] font-medium opacity-60 transition-colors", isSelected ? "text-primary/60" : "text-muted-foreground")}>
                                                 {(file.size / 1024).toFixed(1)} KB
                                             </p>
                                         </div>
@@ -175,7 +175,7 @@ function FilesPage() {
                 )}
 
                 {/* Main Content */}
-                <div className="flex-1 overflow-hidden flex flex-col min-w-0">
+                <div className="flex-1 overflow-y-auto flex flex-col min-w-0 custom-scrollbar">
                     {!selectedFile ? (
                         <div className="space-y-4 animate-in fade-in duration-700">
                             <div className="flex items-center gap-3 px-1">
@@ -190,7 +190,7 @@ function FilesPage() {
                                     return (
                                         <Card
                                             key={file.name}
-                                            className="p-4 rounded-2xl hover:border-primary/40 transition-all group bg-white shadow-sm hover:shadow-xl hover:shadow-primary/5 border-border/50 cursor-pointer flex flex-col justify-between h-[150px]"
+                                            className="p-4 rounded-2xl hover:border-primary/40 transition-all group bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-xl hover:shadow-primary/5 border-border/40 cursor-pointer flex flex-col justify-between h-[150px]"
                                             onClick={() => setSelectedFile(file.name)}
                                         >
                                             <div className="flex items-center justify-between mb-4">
@@ -237,7 +237,7 @@ function FilesPage() {
                             )}
                         </div>
                     ) : (
-                        <Card className="flex-1 min-w-0 rounded-[2.5rem] border-border/40 overflow-hidden shadow-2xl shadow-primary/5 bg-white animate-in zoom-in-95 duration-500">
+                        <Card className="flex-1 min-w-0 rounded-[2.5rem] border-border/40 overflow-hidden shadow-2xl shadow-primary/5 bg-background animate-in zoom-in-95 duration-500">
                             <FilePreview
                                 sessionId={sessionId}
                                 selectedFile={selectedFile}

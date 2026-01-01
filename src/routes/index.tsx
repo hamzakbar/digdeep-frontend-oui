@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { auth } from '@/lib/auth'
+import { ModeToggle } from '@/components/mode-toggle'
 
 export const Route = createFileRoute('/')({
     component: LandingPage,
@@ -40,7 +41,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
 
     return (
         <nav className="sticky top-0 left-0 right-0 z-50 flex justify-center p-4 md:p-6 pointer-events-none">
-            <div className="flex w-full max-w-7xl items-center justify-between glass rounded-3xl px-6 py-4 transition-all duration-300 pointer-events-auto shadow-2xl shadow-primary/10 bg-white/80 backdrop-blur-xl border border-white/30">
+            <div className="flex w-full max-w-7xl items-center justify-between glass rounded-3xl px-6 py-4 transition-all duration-300 pointer-events-auto shadow-2xl shadow-primary/10">
                 <div className="flex items-center gap-2 group cursor-pointer shrink-0">
                     <div className="relative w-10 h-10 rounded-2xl bg-primary flex items-center justify-center transition-transform group-hover:scale-110 group-hover:rotate-6 shadow-lg shadow-primary/20">
                         <Database className="text-primary-foreground size-5" />
@@ -63,6 +64,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
+                    <ModeToggle />
                     <Button
                         onClick={handleAuthAction}
                         className="rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
@@ -115,22 +117,22 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
                         {isAuthenticated ? 'Go to Dashboard' : 'Start Exploring'}
                         <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
-                    <Button variant="outline" size="lg" className="h-14 px-8 rounded-2xl text-lg glass border-white/40">
+                    <Button variant="outline" size="lg" className="h-14 px-8 rounded-2xl text-lg glass">
                         <PlayCircle className="mr-2" />
                         Watch Product Tour
                     </Button>
                 </div>
 
                 {/* Dashboard Preview mockup */}
-                <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden glass border-white/20 shadow-2xl animate-in fade-in zoom-in-95 duration-1000 delay-500 group">
+                <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden glass shadow-2xl animate-in fade-in zoom-in-95 duration-1000 delay-500 group">
                     <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent pointer-events-none"></div>
-                    <div className="h-12 bg-white/50 border-b border-white/20 flex items-center px-4 gap-2">
+                    <div className="h-12 bg-muted/50 border-b border-border/20 flex items-center px-4 gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-400/80"></div>
                         <div className="w-3 h-3 rounded-full bg-yellow-400/80"></div>
                         <div className="w-3 h-3 rounded-full bg-green-400/80"></div>
-                        <div className="ml-4 h-6 w-48 bg-white/40 rounded-lg border border-white/10"></div>
+                        <div className="ml-4 h-6 w-48 bg-muted/40 rounded-lg border border-border/10"></div>
                     </div>
-                    <div className="p-8 grid grid-cols-12 gap-6 bg-white/30 backdrop-blur-md">
+                    <div className="p-8 grid grid-cols-12 gap-6 bg-muted/30 backdrop-blur-md">
                         <div className="col-span-8 space-y-4">
                             <div className="h-40 glass rounded-2xl relative overflow-hidden">
                                 <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-primary/5 to-transparent"></div>
@@ -184,7 +186,7 @@ const features = [
         icon: FileText,
         className: "col-span-12 md:col-span-4 bg-muted/30",
         visual: (
-            <div className="mt-6 flex flex-col gap-3 p-4 glass rounded-2xl border-white/20">
+            <div className="mt-6 flex flex-col gap-3 p-4 glass rounded-2xl">
                 <div className="flex items-center gap-3">
                     <div className="size-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600 font-bold text-[10px]">PDF</div>
                     <div className="h-2 w-full bg-muted rounded-full"></div>
@@ -210,7 +212,7 @@ const features = [
                 <div className="absolute size-24 rounded-full border border-dashed border-primary/30 animate-spin-slow"></div>
                 <div className="flex -space-x-3">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="size-10 rounded-full glass border-2 border-white flex items-center justify-center text-[10px] font-bold text-primary">U{i}</div>
+                        <div key={i} className="size-10 rounded-full glass border-2 border-border flex items-center justify-center text-[10px] font-bold text-primary">U{i}</div>
                     ))}
                     <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white"><Zap className="size-4" /></div>
                 </div>
@@ -270,7 +272,7 @@ function FeaturesSection() {
                     {features.map((feature, i) => (
                         <Card key={i} className={`group p-8 border border-border/50 shadow-sm rounded-3xl ${feature.className} hover:border-primary/20 transition-all duration-500 overflow-hidden relative`}>
                             <div className="flex flex-col h-full relative z-10">
-                                <div className="w-12 h-12 rounded-2xl glass border-white/50 flex items-center justify-center mb-6 shadow-sm transition-transform group-hover:scale-110 group-hover:rotate-3">
+                                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center mb-6 shadow-sm transition-transform group-hover:scale-110 group-hover:rotate-3">
                                     <feature.icon className="size-6 text-primary" />
                                 </div>
                                 <h4 className="text-2xl font-bold mb-3 tracking-tight">{feature.title}</h4>
