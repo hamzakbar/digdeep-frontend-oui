@@ -4,7 +4,6 @@ import { fetchSessions, startSession } from '@/lib/api'
 import { auth } from '@/lib/auth'
 import {
   LayoutDashboard, Clock,
-  MoreVertical,
   ChevronRight,
   Database,
   Sparkles,
@@ -158,41 +157,41 @@ function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {data?.data?.map((session) => (
-              <Card key={session.session_id} className="group hover:border-primary/30 transition-all duration-300 rounded-3xl p-6 relative overflow-hidden flex flex-col h-full bg-card shadow-sm border-border/50">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110"></div>
-
-                <div className="flex justify-between items-start mb-4 relative z-10">
-                  <div className="size-10 rounded-2xl bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                    <Clock className="size-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  <Button variant="ghost" size="icon" className="size-8 rounded-lg">
-                    <MoreVertical className="size-4" />
-                  </Button>
-                </div>
-
-                <div className="flex-1 relative z-10">
-                  <h3 className="text-lg font-bold tracking-tight mb-1 line-clamp-1">{session.name || 'Untitled Session'}</h3>
-                  <p className="text-xs text-muted-foreground mb-4">ID: {session.session_id.substring(0, 8)}...</p>
-
-                  {session.data_context && (
-                    <div className="text-xs text-muted-foreground line-clamp-2 bg-muted/30 p-3 rounded-xl min-h-[50px] italic">
-                      "{session.data_context}"
+              <Card
+                key={session.session_id}
+                className="group hover:border-primary/30 hover:bg-muted/50 transition-all duration-300 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-center cursor-pointer border-border/50"
+                onClick={() => navigate({ to: '/session/$sessionId', params: { sessionId: session.session_id } })}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="size-8 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                      <Clock className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
-                  )}
+                    <div>
+                      <h3 className="font-bold tracking-tight text-base line-clamp-1">{session.name || 'Untitled Session'}</h3>
+                      <p className="text-[10px] text-muted-foreground font-mono">ID: {session.session_id.substring(0, 8)}</p>
+                    </div>
+                  </div>
+
+                  {/* <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                    <MoreVertical className="size-4" />
+                  </Button> */}
                 </div>
 
-                <div className="mt-6 flex items-center justify-between relative z-10 pt-4 border-t border-border/30">
+                {session.data_context && (
+                  <div className="text-xs text-muted-foreground line-clamp-1 bg-muted/30 px-2 py-1 rounded-md italic mb-3">
+                    "{session.data_context}"
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/30 mt-auto">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                     Active Now
                   </span>
-                  <Button
-                    variant="ghost"
-                    className="h-8 px-3 rounded-xl text-xs font-semibold group-hover:text-primary"
-                    onClick={() => navigate({ to: '/session/$sessionId', params: { sessionId: session.session_id } })}
-                  >
-                    Open Session
+                  <div className="text-primary text-xs font-semibold flex items-center">
+                    Open
                     <ChevronRight className="ml-1 size-3 transition-transform group-hover:translate-x-1" />
-                  </Button>
+                  </div>
                 </div>
               </Card>
             ))}

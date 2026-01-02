@@ -69,7 +69,18 @@ export const fetchSessions = async ({
 }: {
     pageParam?: number
 } = {}): Promise<SessionsPage> => {
-    const result = await apiFetch(`/session/user/sessions?page=${pageParam}&items_per_page=20`)
+    let userId = ''
+    try {
+        const userDetails = localStorage.getItem('user_details')
+        if (userDetails) {
+            const user = JSON.parse(userDetails)
+            userId = user._id
+        }
+    } catch (error) {
+        console.error('Error retrieving user ID:', error)
+    }
+
+    const result = await apiFetch(`/session/user/${userId}?page=${pageParam}&items_per_page=20`)
 
     // Normalize: If the API returns { sessions: [] } instead of { data: [] }
     if (result && result.sessions && !result.data) {
