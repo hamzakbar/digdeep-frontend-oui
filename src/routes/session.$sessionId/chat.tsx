@@ -305,7 +305,10 @@ export function ChatPage() {
 
       <div className='flex-1 flex overflow-hidden'>
         {/* Left Data Sidebar Sub-pane */}
-        <aside className='w-80 border-r flex flex-col shrink-0 overflow-y-auto hidden lg:flex p-6 space-y-8'>
+        <aside
+          className='w-80 border-r flex flex-col shrink-0 overflow-y-auto hidden lg:flex p-6 space-y-8 outline-none'
+          tabIndex={0}
+        >
           <section className='space-y-4'>
             <div className='flex items-center justify-between px-1'>
               <div className='flex items-center gap-2'>
@@ -373,7 +376,10 @@ export function ChatPage() {
         <main className='flex-1 flex flex-col relative bg-background/40 overflow-hidden min-w-0'>
           <Tabs value={activeTab} className="h-full flex flex-col min-w-0 overflow-hidden">
             <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0 min-w-0">
-              <div className='flex-1 overflow-y-auto px-8 py-10 space-y-10 scrollbar-hide'>
+              <div
+                className='flex-1 overflow-y-auto px-8 py-10 space-y-10 scrollbar-hide outline-none'
+                tabIndex={0}
+              >
                 {groupedMessages.map((item) => (
                   <div
                     key={item.id}

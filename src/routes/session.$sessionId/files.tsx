@@ -138,7 +138,10 @@ function FilesPage() {
                                 <X className="size-4" />
                             </Button>
                         </div>
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                        <div
+                            className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar outline-none"
+                            tabIndex={0}
+                        >
                             {files.map((file) => {
                                 const { Icon, color, bgColor } = getIconForFile(file.name)
                                 const isSelected = selectedFile === file.name
@@ -175,7 +178,10 @@ function FilesPage() {
                 )}
 
                 {/* Main Content */}
-                <div className="flex-1 overflow-y-auto flex flex-col min-w-0 custom-scrollbar">
+                <div
+                    className="flex-1 overflow-y-auto flex flex-col min-w-0 custom-scrollbar outline-none"
+                    tabIndex={0}
+                >
                     {!selectedFile ? (
                         <div className="space-y-4 animate-in fade-in duration-700">
                             <div className="flex items-center gap-3 px-1">

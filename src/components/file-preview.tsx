@@ -328,7 +328,8 @@ export function FilePreview({
                 <div className="flex-1 overflow-hidden bg-muted/10 p-4 md:p-8 flex flex-col min-w-0">
                     <div
                         ref={tableContainerRef}
-                        className="flex-1 w-full min-w-0 max-w-full overflow-auto rounded-[2rem] border border-border/40 bg-background shadow-2xl shadow-primary/5"
+                        className="flex-1 w-full min-w-0 max-w-full overflow-auto rounded-[2rem] border border-border/40 bg-background shadow-2xl shadow-primary/5 outline-none"
+                        tabIndex={0}
                     >
                         <table
                             className="text-[13px] border-separate border-spacing-0 min-w-full"
@@ -447,7 +448,10 @@ export function FilePreview({
                         </Button>
                     </div>
                 )}
-                <div className="flex-1 overflow-auto p-8 lg:p-12 w-full max-w-full bg-muted/5">
+                <div
+                    className="flex-1 overflow-auto p-8 lg:p-12 w-full max-w-full bg-muted/5 outline-none"
+                    tabIndex={0}
+                >
                     <MarkdownFormatter textContent={textContent} />
                 </div>
             </div>

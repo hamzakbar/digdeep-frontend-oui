@@ -92,7 +92,10 @@ export const MarkdownFormatter = ({ textContent }: MarkdownFormatterProps) => {
                     <a className='text-primary underline hover:opacity-80 transition-opacity' {...props} />
                 ),
                 table: ({ node, ...props }) => (
-                    <div className='my-6 w-full overflow-x-auto max-w-full border rounded-lg shadow-sm'>
+                    <div
+                        className='my-6 w-full overflow-x-auto max-w-full border rounded-lg shadow-sm outline-none'
+                        tabIndex={0}
+                    >
                         <Table {...props} />
                     </div>
                 ),
@@ -101,6 +104,13 @@ export const MarkdownFormatter = ({ textContent }: MarkdownFormatterProps) => {
                 tr: ({ node, ...props }) => <TableRow {...props} />,
                 th: ({ node, ...props }) => <TableHead className='font-bold' {...props} />,
                 td: ({ node, ...props }) => <TableCell {...props} />,
+                pre: ({ node, ...props }) => (
+                    <pre
+                        className='my-4 overflow-x-auto rounded-lg bg-muted/50 p-4 outline-none'
+                        tabIndex={0}
+                        {...props}
+                    />
+                ),
             }}
         >
             {processedContent}
