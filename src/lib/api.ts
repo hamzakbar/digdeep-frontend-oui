@@ -116,6 +116,9 @@ export interface SessionAsset {
 
 export const fetchFiles = async (sessionId: string): Promise<SessionAsset[]> => {
     const result = await apiFetch(`/session/${sessionId}/outputs`)
+    if (Array.isArray(result)) {
+        return result
+    }
     return result?.files || []
 }
 
