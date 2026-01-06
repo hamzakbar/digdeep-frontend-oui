@@ -66,8 +66,10 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
 
 export const fetchSessions = async ({
     pageParam = 1,
+    itemsPerPage = 50,
 }: {
     pageParam?: number
+    itemsPerPage?: number
 } = {}): Promise<SessionsPage> => {
     let userId = ''
     try {
@@ -80,7 +82,7 @@ export const fetchSessions = async ({
         console.error('Error retrieving user ID:', error)
     }
 
-    const result = await apiFetch(`/session/user/${userId}?page=${pageParam}&items_per_page=20`)
+    const result = await apiFetch(`/session/user/${userId}?page=${pageParam}&items_per_page=${itemsPerPage}`)
 
     // Normalize: If the API returns { sessions: [] } instead of { data: [] }
     if (result && result.sessions && !result.data) {
@@ -88,8 +90,8 @@ export const fetchSessions = async ({
             data: result.sessions,
             total_count: result.sessions.length,
             has_more: false,
-            page: 1,
-            items_per_page: result.sessions.length,
+            page: pageParam,
+            items_per_page: itemsPerPage,
         }
     }
 

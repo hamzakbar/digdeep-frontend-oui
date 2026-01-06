@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, Link, useNavigate } from '@tanstack/react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchSessions, startSession } from '@/lib/api'
 import { auth } from '@/lib/auth'
 import {
@@ -44,10 +44,22 @@ function DashboardPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data, isLoading, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
     queryKey: ['sessions'],
-    queryFn: () => fetchSessions(),
+    queryFn: ({ pageParam = 1 }) => fetchSessions({ pageParam, itemsPerPage: 50 }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.has_more ? lastPage.page + 1 : undefined,
   })
+
+  const sessions = data?.pages.flatMap(page => page.data) || []
+  const totalCount = data?.pages[0]?.total_count || 0
 
   const { mutate: createSession, isPending: isCreating } = useMutation({
     mutationFn: startSession,
@@ -121,7 +133,7 @@ function DashboardPage() {
           </div>
           <div className="flex gap-2">
             <Badge variant="outline" className="rounded-lg py-1 px-3 border-primary/10 bg-primary/5 text-primary">
-              {data?.total_count || 0} Total Sessions
+              {totalCount} Total Sessions
             </Badge>
           </div>
         </div>
@@ -140,7 +152,7 @@ function DashboardPage() {
               Try Again
             </Button>
           </div>
-        ) : (data?.data?.length ?? 0) === 0 ? (
+        ) : sessions.length === 0 ? (
           <div className="text-center py-24 glass rounded-[3rem] border-dashed border-primary/20 bg-primary/[0.02]">
             <div className="size-16 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
               <LayoutDashboard className="size-8 text-primary" />
@@ -160,47 +172,66 @@ function DashboardPage() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.data?.map((session) => (
-              <Card
-                key={session.session_id}
-                className="group hover:border-primary/30 hover:bg-muted/50 transition-all duration-300 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-center cursor-pointer border-border/50"
-                onClick={() => navigate({ to: '/session/$sessionId', params: { sessionId: session.session_id } })}
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <Clock className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sessions.map((session) => (
+                <Card
+                  key={session.session_id}
+                  className="group hover:border-primary/30 hover:bg-muted/50 transition-all duration-300 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-center cursor-pointer border-border/50"
+                  onClick={() => navigate({ to: '/session/$sessionId', params: { sessionId: session.session_id } })}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                        <Clock className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold tracking-tight text-base line-clamp-1">{session.name || 'Untitled Session'}</h3>
+                        <p className="text-[10px] text-muted-foreground font-mono">ID: {session.session_id.substring(0, 8)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold tracking-tight text-base line-clamp-1">{session.name || 'Untitled Session'}</h3>
-                      <p className="text-[10px] text-muted-foreground font-mono">ID: {session.session_id.substring(0, 8)}</p>
+                  </div>
+
+                  {session.data_context && (
+                    <div className="text-xs text-muted-foreground line-clamp-1 bg-muted/30 px-2 py-1 rounded-md italic mb-3">
+                      "{session.data_context}"
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-2 border-t border-border/30 mt-auto">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Active Now
+                    </span>
+                    <div className="text-primary text-xs font-semibold flex items-center">
+                      Open
+                      <ChevronRight className="ml-1 size-3 transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
+                </Card>
+              ))}
+            </div>
 
-                  {/* <Button variant="ghost" size="icon" className="size-8 rounded-lg">
-                    <MoreVertical className="size-4" />
-                  </Button> */}
-                </div>
-
-                {session.data_context && (
-                  <div className="text-xs text-muted-foreground line-clamp-1 bg-muted/30 px-2 py-1 rounded-md italic mb-3">
-                    "{session.data_context}"
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-2 border-t border-border/30 mt-auto">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Active Now
-                  </span>
-                  <div className="text-primary text-xs font-semibold flex items-center">
-                    Open
-                    <ChevronRight className="ml-1 size-3 transition-transform group-hover:translate-x-1" />
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+            {hasNextPage && (
+              <div className="mt-12 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-2xl px-8 border-primary/20 hover:bg-primary/5 text-primary font-bold transition-all hover:scale-105"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      Loading more...
+                    </>
+                  ) : (
+                    'View More Sessions'
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </main>
 
