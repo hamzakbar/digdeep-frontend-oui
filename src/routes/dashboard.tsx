@@ -7,7 +7,9 @@ import {
   ChevronRight,
   Database,
   Sparkles,
-  Loader2
+  Loader2,
+  Zap,
+  Timer
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -24,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from 'react'
 import { ModeToggle } from '@/components/mode-toggle'
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
@@ -64,12 +67,14 @@ function DashboardPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [sessionName, setSessionName] = useState('')
+  const [mode, setMode] = useState<'fast' | 'slow'>('fast')
 
   const handleCreateSession = () => {
     if (!sessionName.trim()) return
-    createSession({ name: sessionName })
+    createSession({ name: sessionName, mode })
     setIsDialogOpen(false)
     setSessionName('')
+    setMode('fast')
   }
 
   return (
@@ -220,6 +225,39 @@ function DashboardPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateSession()}
                 className="rounded-xl h-12"
               />
+            </div>
+
+            <div className="grid gap-2 mt-2">
+              <Label className="text-sm font-semibold ml-1">
+                Analysis Mode
+              </Label>
+              <Tabs
+                value={mode}
+                onValueChange={(v) => setMode(v as 'fast' | 'slow')}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2 h-12 rounded-xl p-1 bg-muted/50 border border-border/50">
+                  <TabsTrigger
+                    value="fast"
+                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm flex items-center gap-2"
+                  >
+                    <Zap className="size-3.5" />
+                    <span>Fast</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="slow"
+                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm flex items-center gap-2"
+                  >
+                    <Timer className="size-3.5" />
+                    <span>Slow</span>
+                  </TabsTrigger>
+                </TabsList>
+                <p className="text-[10px] text-muted-foreground mt-2 ml-1 px-1">
+                  {mode === 'fast'
+                    ? 'Optimized for speed and quick insights.'
+                    : 'Deep analysis mode. More thorough but takes longer.'}
+                </p>
+              </Tabs>
             </div>
           </div>
           <DialogFooter>

@@ -96,10 +96,10 @@ export const fetchSessions = async ({
     return result
 }
 
-export const startSession = ({ name }: { name: string }): Promise<Session> => {
+export const startSession = ({ name, mode = 'fast' }: { name: string, mode?: 'slow' | 'fast' }): Promise<Session> => {
     return apiFetch('/session/start', {
         method: 'POST',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, mode }),
     })
 }
 
