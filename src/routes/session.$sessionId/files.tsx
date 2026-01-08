@@ -57,6 +57,17 @@ function FilesPage() {
         }
     }
 
+    const handleLinkClick = (href: string) => {
+        const fileName = href.split('/').pop() || href
+        const fileExists = files?.some(f => f.name === fileName)
+
+        if (fileExists) {
+            setSelectedFile(fileName)
+            return true
+        }
+        return false
+    }
+
     const filteredFiles = files?.filter(file =>
         file.name.toLowerCase().includes(searchQuery.toLowerCase())
     ) || []
@@ -248,6 +259,7 @@ function FilesPage() {
                                 sessionId={sessionId}
                                 selectedFile={selectedFile}
                                 onClose={() => setSelectedFile(null)}
+                                onLinkClick={handleLinkClick}
                             />
                         </Card>
                     )}

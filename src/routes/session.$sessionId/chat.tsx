@@ -161,6 +161,19 @@ export function ChatPage() {
     }
   }
 
+  const handleLinkClick = (href: string) => {
+    // If href is a relative path or just a filename
+    const fileName = href.split('/').pop() || href
+    const fileExists = files?.some((f: { name: string }) => f.name === fileName)
+
+    if (fileExists) {
+      setSelectedFile(fileName)
+      setActiveTab('preview')
+      return true // handled
+    }
+    return false // not handled
+  }
+
   const handleCancelStream = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -485,13 +498,19 @@ export function ChatPage() {
                     >
                       {item.type === 'user' && (
                         <div className='px-6 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium bg-primary text-primary-foreground rounded-tr-none text-left inline-block max-w-[90%]'>
-                          <MarkdownFormatter textContent={item.content || ''} />
+                          <MarkdownFormatter
+                            textContent={item.content || ''}
+                            onLinkClick={handleLinkClick}
+                          />
                         </div>
                       )}
 
                       {item.type === 'bot-simple' && (
                         <div className='px-6 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium bg-card border border-border/50 text-foreground/80 rounded-tl-none w-full'>
-                          <MarkdownFormatter textContent={item.content || ''} />
+                          <MarkdownFormatter
+                            textContent={item.content || ''}
+                            onLinkClick={handleLinkClick}
+                          />
                         </div>
                       )}
 
@@ -501,11 +520,15 @@ export function ChatPage() {
                             <ThinkingProcess
                               thoughts={item.thoughts}
                               isStreaming={isStreaming && !item.finalAnswer}
+                              onLinkClick={handleLinkClick}
                             />
                           )}
                           {item.finalAnswer && (
                             <div className='px-6 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium bg-card border border-border/50 text-foreground/80 rounded-tl-none w-full'>
-                              <MarkdownFormatter textContent={item.finalAnswer} />
+                              <MarkdownFormatter
+                                textContent={item.finalAnswer}
+                                onLinkClick={handleLinkClick}
+                              />
                             </div>
                           )}
                         </div>
@@ -603,6 +626,7 @@ export function ChatPage() {
                   selectedFile={selectedFile}
                   onClose={() => setActiveTab('chat')}
                   hideHeader={true}
+                  onLinkClick={handleLinkClick}
                 />
               </TabsContent>
             )}

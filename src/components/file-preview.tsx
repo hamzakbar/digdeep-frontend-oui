@@ -52,6 +52,7 @@ interface FilePreviewProps {
     selectedFile: string
     onClose?: () => void
     hideHeader?: boolean
+    onLinkClick?: (href: string) => boolean
 }
 
 export function FilePreview({
@@ -60,6 +61,7 @@ export function FilePreview({
     visitorId,
     selectedFile,
     hideHeader,
+    onLinkClick,
 }: FilePreviewProps) {
     const [imageUrl, setImageUrl] = useState<string>('')
     const [textContent, setTextContent] = useState<string>('')
@@ -452,7 +454,10 @@ export function FilePreview({
                     className="flex-1 overflow-auto p-8 lg:p-12 w-full max-w-full bg-muted/5 outline-none"
                     tabIndex={0}
                 >
-                    <MarkdownFormatter textContent={textContent} />
+                    <MarkdownFormatter
+                        textContent={textContent}
+                        onLinkClick={onLinkClick}
+                    />
                 </div>
             </div>
         )

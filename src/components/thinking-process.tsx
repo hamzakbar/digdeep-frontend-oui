@@ -12,11 +12,13 @@ import { Loader2 } from 'lucide-react'
 interface ThinkingProcessProps {
     thoughts: ParsedBlock[]
     isStreaming: boolean
+    onLinkClick?: (href: string) => boolean
 }
 
 export function ThinkingProcess({
     thoughts,
     isStreaming,
+    onLinkClick,
 }: ThinkingProcessProps) {
     const [openValue, setOpenValue] = useState(
         isStreaming ? 'thought-process' : ''
@@ -72,7 +74,10 @@ export function ThinkingProcess({
                                                 {block.label}
                                             </div>
                                             <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/70">
-                                                <MarkdownFormatter textContent={block.content} />
+                                                <MarkdownFormatter
+                                                    textContent={block.content}
+                                                    onLinkClick={onLinkClick}
+                                                />
                                             </div>
                                         </div>
                                     ))}

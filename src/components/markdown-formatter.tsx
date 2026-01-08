@@ -11,6 +11,7 @@ import {
 
 interface MarkdownFormatterProps {
     textContent: string
+    onLinkClick?: (href: string) => boolean
 }
 
 /**
@@ -58,7 +59,10 @@ const preprocessMarkdown = (content: string) => {
     return result.join('\n')
 }
 
-export const MarkdownFormatter = ({ textContent }: MarkdownFormatterProps) => {
+export const MarkdownFormatter = ({
+    textContent,
+    onLinkClick,
+}: MarkdownFormatterProps) => {
     // Some models or manual files provide pipe-separated data without the MD separator row.
     // We pre-process to ensure these render as tables automatically.
     const processedContent = preprocessMarkdown(textContent)
@@ -89,7 +93,18 @@ export const MarkdownFormatter = ({ textContent }: MarkdownFormatterProps) => {
                     <ol className='my-4 ml-6 list-decimal [&>li]:mt-2' {...props} />
                 ),
                 a: ({ node, ...props }) => (
-                    <a className='text-primary underline hover:opacity-80 transition-opacity' {...props} />
+                    <a
+                        className='text-primary underline hover:opacity-80 transition-opacity cursor-pointer'
+                        onClick={(e) => {
+                            if (props.href && onLinkClick) {
+                                const handled = onLinkClick(props.href)
+                                if (handled) {
+                                    e.preventDefault()
+                                }
+                            }
+                        }}
+                        {...props}
+                    />
                 ),
                 table: ({ node, ...props }) => (
                     <div
