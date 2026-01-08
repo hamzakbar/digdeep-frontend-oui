@@ -12,6 +12,7 @@ import {
   MessageSquare,
   FileText as FileIcon,
   Download,
+  FilePieChart,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -54,29 +55,39 @@ interface RenderableItem {
   timestamp: Date
 }
 
+
+
 export function ChatPage() {
   const { sessionId } = Route.useParams()
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      role: 'agent',
-      content: 'Hello! I am your data analysis agent. How can I help you today?',
-      timestamp: new Date(),
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const { isStreaming, setIsStreaming } = useStreaming()
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'chat' | 'preview'>('chat')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+
+  const userStr = localStorage.getItem('user_details')
+  const user = userStr ? JSON.parse(userStr) : null
+  const userName = user?.firstName || ''
+
+  const chips = [
+    "RED Report for December 2025",
+    userName ? `Give me insights for ${userName}` : "Give me insights for me"
+  ]
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      inputRef.current?.focus()
+    }
+  }, [messages.length])
 
   const { data: files } = useQuery({
     queryKey: ['session-files', sessionId],
     queryFn: () => fetchFiles(sessionId),
     refetchInterval: isStreaming ? 10000 : false,
   })
-
   const { data: session } = useQuery({
     queryKey: ['session', sessionId],
     queryFn: () => fetchSession(sessionId),
@@ -270,7 +281,7 @@ export function ChatPage() {
             </Link>
             <ChevronRight className='size-3.5 text-muted-foreground/50 shrink-0' />
             <span className='font-bold text-foreground opacity-80 truncate max-w-[120px] sm:max-w-[200px] md:max-w-[300px] lg:max-w-md'>
-              Session: {session?.name || sessionId.split('-')[0] + '...'}
+              Session: {session?.name || sessionId}
             </span>
           </div>
 
@@ -380,6 +391,67 @@ export function ChatPage() {
                 className='flex-1 overflow-y-auto px-8 py-10 space-y-10 scrollbar-hide outline-none'
                 tabIndex={0}
               >
+                {messages.length === 0 && (
+                  <div className='flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in zoom-in duration-1000'>
+                    <div className='text-center space-y-6 mb-12'>
+                      <div className='size-20 rounded-[2.5rem] bg-primary/10 flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-primary/20 relative group'>
+                        <div className='absolute inset-0 bg-primary/20 rounded-[2.5rem] animate-ping opacity-20 group-hover:animate-none' />
+                        <FilePieChart className='size-10 text-primary animate-pulse relative z-10' />
+                      </div>
+                      <div className='flex flex-col gap-2'>
+                        <span className='text-[10px] font-bold uppercase tracking-[0.4em] text-primary/60'>AI Assistant</span>
+                        <h2 className='text-4xl font-black tracking-tighter text-foreground text-center'>
+                          Dig <span className="text-primary">Deep</span>
+                        </h2>
+                      </div>
+                      <p className='text-muted-foreground font-medium max-w-lg mx-auto text-lg leading-relaxed px-4'>
+                        Analyze your data and extract key insights. I'll help you query records, generate summaries, and visualize trends from your database.
+                      </p>
+                    </div>
+
+                    <div className='w-full max-w-2xl px-4 space-y-8'>
+                      <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                        <div className="relative bg-background border border-border/60 rounded-[2.5rem] flex items-center gap-4 p-2 pl-6 shadow-xl">
+                          <div className='p-2.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary'>
+                            <Sparkles className='size-5' />
+                          </div>
+                          <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            placeholder="Ask anything..."
+                            className="flex-1 bg-transparent py-4 text-lg focus:outline-none placeholder:text-muted-foreground/40 font-semibold"
+                            disabled={isStreaming}
+                          />
+                          <Button
+                            onClick={handleSend}
+                            disabled={!inputValue.trim() || isStreaming}
+                            className="h-14 w-14 rounded-3xl shadow-lg shadow-primary/20 group transition-all"
+                          >
+                            <Send className="size-6 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        {chips.map((chip, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              setInputValue(chip)
+                              inputRef.current?.focus()
+                            }}
+                            className="px-4 py-2 rounded-full border border-border/40 bg-muted/30 text-xs font-bold text-muted-foreground hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all active:scale-95 duration-200"
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {groupedMessages.map((item) => (
                   <div
                     key={item.id}
@@ -472,48 +544,56 @@ export function ChatPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div className='p-8 pt-0 z-20 shrink-0'>
-                <div className='max-w-4xl mx-auto bg-background/70 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] p-3 shadow-2xl shadow-primary/5 flex items-center gap-3 ring-1 ring-black/5'>
-                  <div className='p-2.5 rounded-2xl bg-muted border border-border/40 text-primary/40 hover:text-primary transition-colors cursor-pointer hidden sm:flex'>
-                    <Sparkles className='size-5' />
-                  </div>
-
-                  <input
-                    type='text'
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder='Ask questions about your data...'
-                    className='flex-1 bg-transparent px-4 py-2 text-[15px] focus:outline-none placeholder:text-slate-400 font-semibold'
-                    disabled={isStreaming}
-                  />
-
-                  <div className='flex items-center gap-2'>
-                    {isStreaming && (
-                      <Button
-                        onClick={handleCancelStream}
-                        size='icon'
-                        variant='ghost'
-                        className='size-11 rounded-[1.25rem] text-red-500 hover:text-red-600 hover:bg-red-50 transition-all'
-                      >
-                        <StopCircle className='size-5' />
-                      </Button>
+              {messages.length > 0 && (
+                <div className='p-8 pt-0 z-20 shrink-0'>
+                  <div
+                    className={cn(
+                      'max-w-4xl mx-auto bg-background/70 backdrop-blur-2xl border border-border/60 rounded-[2.5rem] p-3 shadow-2xl transition-all duration-700 flex items-center gap-3 ring-1 ring-black/5',
+                      'shadow-primary/5'
                     )}
-                    <Button
-                      onClick={handleSend}
-                      disabled={!inputValue.trim() || isStreaming}
-                      size='icon'
-                      className='size-11 rounded-[1.25rem] shadow-xl shadow-primary/20 group transition-all duration-300 hover:scale-105 active:scale-95'
-                    >
-                      {isStreaming ? (
-                        <Loader2 className='size-5 animate-spin' />
-                      ) : (
-                        <Send className='size-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5' />
+                  >
+                    <div className='p-2.5 rounded-2xl bg-muted border border-border/40 text-primary/40 hover:text-primary transition-colors cursor-pointer hidden sm:flex'>
+                      <Sparkles className='size-5' />
+                    </div>
+
+                    <input
+                      ref={inputRef}
+                      type='text'
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                      placeholder='Ask a question...'
+                      className='flex-1 bg-transparent px-4 py-2 text-[15px] focus:outline-none placeholder:text-slate-400 font-semibold'
+                      disabled={isStreaming}
+                    />
+
+                    <div className='flex items-center gap-2'>
+                      {isStreaming && (
+                        <Button
+                          onClick={handleCancelStream}
+                          size='icon'
+                          variant='ghost'
+                          className='size-11 rounded-[1.25rem] text-red-500 hover:text-red-600 hover:bg-red-50 transition-all'
+                        >
+                          <StopCircle className='size-5' />
+                        </Button>
                       )}
-                    </Button>
+                      <Button
+                        onClick={handleSend}
+                        disabled={!inputValue.trim() || isStreaming}
+                        size='icon'
+                        className='size-11 rounded-[1.25rem] shadow-xl shadow-primary/20 group transition-all duration-300 hover:scale-105 active:scale-95'
+                      >
+                        {isStreaming ? (
+                          <Loader2 className='size-5 animate-spin' />
+                        ) : (
+                          <Send className='size-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5' />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </TabsContent>
 
             {selectedFile && (
