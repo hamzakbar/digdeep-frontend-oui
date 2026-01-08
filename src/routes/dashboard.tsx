@@ -270,14 +270,14 @@ function DashboardPage() {
                 <TabsList className="grid w-full grid-cols-2 h-12 rounded-xl p-1 bg-muted/50 border border-border/50">
                   <TabsTrigger
                     value="fast"
-                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm flex items-center gap-2"
+                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=active]:border-primary/20 border border-transparent font-medium data-[state=active]:font-bold flex items-center gap-2 transition-all data-[state=active]:scale-[1.02]"
                   >
                     <Zap className="size-3.5" />
                     <span>Fast</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="slow"
-                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm flex items-center gap-2"
+                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md data-[state=active]:border-primary/20 border border-transparent font-medium data-[state=active]:font-bold flex items-center gap-2 transition-all data-[state=active]:scale-[1.02]"
                   >
                     <Timer className="size-3.5" />
                     <span>Slow</span>
