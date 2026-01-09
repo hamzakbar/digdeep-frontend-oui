@@ -1,21 +1,39 @@
+export interface AuthStatus {
+    isAuthenticated: boolean
+    hasAccess: boolean
+    user?: Record<string, any> | null
+}
+
 export const auth = {
-    isAuthenticated: async () => {
+    checkStatus: async (): Promise<AuthStatus> => {
         try {
             const user = await verifyAuthFromBackend()
-            if (user && user.canAccessDigDeep) {
-                // SUCCESS: Store full user object and auth indicator
-                localStorage.setItem('user_details', JSON.stringify(user))
-                localStorage.setItem('access_token', 'verified')
-                return true
+            if (user) {
+                const hasAccess = !!user.canAccessDigDeep
+                if (hasAccess) {
+                    localStorage.setItem('user_details', JSON.stringify(user))
+                    localStorage.setItem('access_token', 'verified')
+                } else {
+                    // Logged in but no access
+                    localStorage.removeItem('access_token')
+                    localStorage.removeItem('user_details')
+                }
+                return { isAuthenticated: true, hasAccess, user }
             }
         } catch (error) {
             console.error('Critical auth error:', error)
         }
 
-        // FAILURE or NULL or !canAccessDigDeep: Wipe storage completely
+        // FAILURE or NULL
         localStorage.removeItem('access_token')
         localStorage.removeItem('user_details')
-        return false
+        return { isAuthenticated: false, hasAccess: false, user: null }
+    },
+
+    // Legacy support for boolean checks
+    isAuthenticated: async () => {
+        const status = await auth.checkStatus()
+        return status.isAuthenticated && status.hasAccess
     },
 
     getUser: async () => {

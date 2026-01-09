@@ -13,10 +13,13 @@ const queryClient = new QueryClient({
     },
 })
 
+import { Toaster } from 'sonner'
+
 const RootLayout = () => (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <QueryClientProvider client={queryClient}>
             <Outlet />
+            <Toaster position="top-center" richColors />
             <TanStackRouterDevtools />
         </QueryClientProvider>
     </ThemeProvider>

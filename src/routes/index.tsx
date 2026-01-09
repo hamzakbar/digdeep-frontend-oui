@@ -3,9 +3,7 @@ import { useState, useEffect } from 'react'
 import {
     Database,
     Sparkles,
-    PlayCircle,
-    ArrowRight,
-    Bot,
+    PlayCircle, Bot,
     FileText,
     Share2,
     Brain,
@@ -128,12 +126,10 @@ function HeroSection({ isAuthenticated, isLoading }: { isAuthenticated: boolean;
                         ) : isAuthenticated ? (
                             <>
                                 Go to Dashboard
-                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                             </>
                         ) : (
                             <>
                                 Start Exploring
-                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                             </>
                         )}
                     </Button>
@@ -416,6 +412,8 @@ function Footer() {
     )
 }
 
+import { toast } from 'sonner'
+
 export function LandingPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
@@ -424,8 +422,15 @@ export function LandingPage() {
         const checkAuth = async () => {
             setIsLoading(true)
             try {
-                const isAuth = await auth.isAuthenticated()
-                setIsAuthenticated(isAuth)
+                const status = await auth.checkStatus()
+                setIsAuthenticated(status.isAuthenticated && status.hasAccess)
+
+                if (status.isAuthenticated && !status.hasAccess) {
+                    toast.error("You don't have access to DigDeep", {
+                        description: "Please contact your administrator for permission.",
+                        duration: 5000,
+                    })
+                }
             } finally {
                 setIsLoading(false)
             }
