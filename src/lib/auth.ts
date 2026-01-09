@@ -4,6 +4,8 @@ export interface AuthStatus {
     user?: Record<string, any> | null
 }
 
+let isProfileSynced = false
+
 export const auth = {
     checkStatus: async (): Promise<AuthStatus> => {
         try {
@@ -13,6 +15,17 @@ export const auth = {
                 if (hasAccess) {
                     localStorage.setItem('user_details', JSON.stringify(user))
                     localStorage.setItem('access_token', 'verified')
+
+                    // Ensure user profile is synchronized - runs on every refresh/initial load
+                    if (!isProfileSynced) {
+                        auth.updateUserProfile(user.firstName || '', user.lastName || '')
+                            .then(success => {
+                                if (success) {
+                                    isProfileSynced = true
+                                    console.log('User profile synchronized successfully')
+                                }
+                            })
+                    }
                 } else {
                     // Logged in but no access
                     localStorage.removeItem('access_token')
@@ -28,6 +41,177 @@ export const auth = {
         localStorage.removeItem('access_token')
         localStorage.removeItem('user_details')
         return { isAuthenticated: false, hasAccess: false, user: null }
+    },
+
+    updateUserProfile: async (firstName: string, lastName: string): Promise<boolean> => {
+        const apiUrl = import.meta.env.VITE_GRAPHQL_URL
+        if (!apiUrl) {
+            console.error('VITE_GRAPHQL_URL is missing')
+            return false
+        }
+
+        const query = `
+            mutation UserUpdate($params: UpdateUserInput!) {
+              updateUserProfile(params: $params) {
+                ...ResponseLogin
+                __typename
+              }
+            }
+
+            fragment ResponseLogin on MeRes {
+              _id
+              email
+              firstName
+              lastName
+              middleName
+              role
+              phones
+              organization {
+                idOrg: _id
+                name
+                defaultTreatment {
+                  idTreatment: _id
+                  __typename
+                }
+                timezone {
+                  offset
+                  value
+                  label
+                  __typename
+                }
+                __typename
+              }
+              authenticationInfo {
+                authenticationSource
+                __typename
+              }
+              patient {
+                idPatient: _id
+                organization {
+                  idOrg: _id
+                  name
+                  __typename
+                }
+                __typename
+              }
+              secondaryEmail {
+                email
+                isVerified
+                __typename
+              }
+              setting {
+                patientDashboard {
+                  sort
+                  __typename
+                }
+                analyticDashboard {
+                  dateRange
+                  __typename
+                }
+                homePage {
+                  treatmentType
+                  __typename
+                }
+                leftDrawer {
+                  treatmentType
+                  showInDrawer
+                  __typename
+                }
+                perPage
+                __typename
+              }
+              remoteUser {
+                ...ResponseRemoteLogin
+                __typename
+              }
+              __typename
+            }
+
+            fragment ResponseRemoteLogin on User {
+              _id
+              email
+              firstName
+              lastName
+              middleName
+              role
+              phones
+              organization {
+                idOrg: _id
+                name
+                defaultTreatment {
+                  idTreatment: _id
+                  __typename
+                }
+                timezone {
+                  value
+                  offset
+                  label
+                  __typename
+                }
+                __typename
+              }
+              authenticationInfo {
+                authenticationSource
+                __typename
+              }
+              secondaryEmail {
+                email
+                isVerified
+                __typename
+              }
+              setting {
+                patientDashboard {
+                  sort
+                  __typename
+                }
+                analyticDashboard {
+                  dateRange
+                  __typename
+                }
+                homePage {
+                  treatmentType
+                  __typename
+                }
+                perPage
+                __typename
+              }
+              __typename
+            }
+        `
+
+        const variables = {
+            params: {
+                firstName: firstName,
+                lastName: lastName,
+                middleName: null
+            }
+        }
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    operationName: "UserUpdate",
+                    variables,
+                    query: query
+                }),
+            })
+
+            if (!response.ok) {
+                console.error('UserUpdate mutation failed')
+                return false
+            }
+
+            const result = await response.json()
+            return !result.errors
+        } catch (error) {
+            console.error('Network error during UserUpdate mutation:', error)
+            return false
+        }
     },
 
     // Legacy support for boolean checks
