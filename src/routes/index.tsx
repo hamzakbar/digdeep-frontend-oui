@@ -12,7 +12,8 @@ import {
     Zap,
     Github,
     Twitter,
-    Linkedin
+    Linkedin,
+    Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +29,7 @@ const REDIRECT_URL = 'https://treatmentgps.com/home/'
 
 // --- Components ---
 
-function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
+function Navbar({ isAuthenticated, isLoading }: { isAuthenticated: boolean; isLoading: boolean }) {
     const navigate = useNavigate()
 
     const handleAuthAction = () => {
@@ -67,9 +68,16 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
                     <ModeToggle />
                     <Button
                         onClick={handleAuthAction}
-                        className="rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+                        disabled={isLoading}
+                        className="rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 min-w-[140px]"
                     >
-                        {isAuthenticated ? 'Go to Dashboard' : 'Log in'}
+                        {isLoading ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : isAuthenticated ? (
+                            'Go to Dashboard'
+                        ) : (
+                            'Log in'
+                        )}
                     </Button>
                 </div>
             </div>
@@ -77,7 +85,7 @@ function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
     )
 }
 
-function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
+function HeroSection({ isAuthenticated, isLoading }: { isAuthenticated: boolean; isLoading: boolean }) {
     const navigate = useNavigate()
 
     const handleAuthAction = () => {
@@ -112,10 +120,22 @@ function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
                     <Button
                         size="lg"
                         onClick={handleAuthAction}
-                        className="h-14 px-8 rounded-2xl text-lg shadow-2xl shadow-primary/20 hover:scale-105 transition-all group"
+                        disabled={isLoading}
+                        className="h-14 px-8 rounded-2xl text-lg shadow-2xl shadow-primary/20 hover:scale-105 transition-all group min-w-[200px]"
                     >
-                        {isAuthenticated ? 'Go to Dashboard' : 'Start Exploring'}
-                        <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                        {isLoading ? (
+                            <Loader2 className="size-5 animate-spin" />
+                        ) : isAuthenticated ? (
+                            <>
+                                Go to Dashboard
+                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                            </>
+                        ) : (
+                            <>
+                                Start Exploring
+                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                            </>
+                        )}
                     </Button>
                     <Button variant="outline" size="lg" className="h-14 px-8 rounded-2xl text-lg glass">
                         <PlayCircle className="mr-2" />
@@ -287,7 +307,7 @@ function FeaturesSection() {
     )
 }
 
-function CTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
+function CTASection({ isAuthenticated, isLoading }: { isAuthenticated: boolean; isLoading: boolean }) {
     const navigate = useNavigate()
 
     const handleAuthAction = () => {
@@ -314,9 +334,16 @@ function CTASection({ isAuthenticated }: { isAuthenticated: boolean }) {
                         <Button
                             size="lg"
                             onClick={handleAuthAction}
-                            className="h-14 px-10 rounded-2xl text-lg shadow-xl shadow-primary/30 hover:scale-105 transition-all"
+                            disabled={isLoading}
+                            className="h-14 px-10 rounded-2xl text-lg shadow-xl shadow-primary/30 hover:scale-105 transition-all min-w-[220px]"
                         >
-                            {isAuthenticated ? 'Go to Dashboard' : 'Claim Your Free Trial'}
+                            {isLoading ? (
+                                <Loader2 className="size-5 animate-spin" />
+                            ) : isAuthenticated ? (
+                                'Go to Dashboard'
+                            ) : (
+                                'Claim Your Free Trial'
+                            )}
                         </Button>
                         <Button variant="ghost" size="lg" className="h-14 px-10 rounded-2xl text-lg">
                             Contact Sales
@@ -391,22 +418,28 @@ function Footer() {
 
 export function LandingPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
         const checkAuth = async () => {
-            const isAuth = await auth.isAuthenticated()
-            setIsAuthenticated(isAuth)
+            setIsLoading(true)
+            try {
+                const isAuth = await auth.isAuthenticated()
+                setIsAuthenticated(isAuth)
+            } finally {
+                setIsLoading(false)
+            }
         }
         checkAuth()
     }, [])
 
     return (
         <div className="min-h-screen bg-background text-foreground scroll-smooth">
-            <Navbar isAuthenticated={isAuthenticated} />
+            <Navbar isAuthenticated={isAuthenticated} isLoading={isLoading} />
             <main>
-                <HeroSection isAuthenticated={isAuthenticated} />
+                <HeroSection isAuthenticated={isAuthenticated} isLoading={isLoading} />
                 <FeaturesSection />
-                <CTASection isAuthenticated={isAuthenticated} />
+                <CTASection isAuthenticated={isAuthenticated} isLoading={isLoading} />
             </main>
             <Footer />
         </div>

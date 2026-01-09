@@ -2,7 +2,7 @@ export const auth = {
     isAuthenticated: async () => {
         try {
             const user = await verifyAuthFromBackend()
-            if (user) {
+            if (user && user.canAccessDigDeep) {
                 // SUCCESS: Store full user object and auth indicator
                 localStorage.setItem('user_details', JSON.stringify(user))
                 localStorage.setItem('access_token', 'verified')
@@ -12,7 +12,7 @@ export const auth = {
             console.error('Critical auth error:', error)
         }
 
-        // FAILURE or NULL: Wipe storage completely
+        // FAILURE or NULL or !canAccessDigDeep: Wipe storage completely
         localStorage.removeItem('access_token')
         localStorage.removeItem('user_details')
         return false
@@ -57,6 +57,7 @@ async function verifyAuthFromBackend(): Promise<Record<string, any> | null> {
         firstName
         lastName
         role
+        canAccessDigDeep
         organization {
           idOrg: _id
           name

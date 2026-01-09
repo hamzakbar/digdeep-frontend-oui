@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, Outlet, Link, useLocation } from '@tanstack/react-router'
+import { createFileRoute, redirect, Outlet, Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { auth } from '@/lib/auth'
 import {
     SidebarProvider,
@@ -24,6 +24,7 @@ import {
     Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useEffect } from 'react'
 import { StreamingProvider } from '@/contexts/streaming-context'
 import { ModeToggle } from '@/components/mode-toggle'
 
@@ -42,6 +43,17 @@ export const Route = createFileRoute('/session/$sessionId')({
 function SessionLayout() {
     const { sessionId } = Route.useParams()
     const location = useLocation()
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isAuth = await auth.isAuthenticated()
+            if (!isAuth) {
+                navigate({ to: '/' })
+            }
+        }
+        checkAuth()
+    }, [navigate])
 
     // Get user details for profile
     const userStr = localStorage.getItem('user_details')
