@@ -7,7 +7,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 interface DeleteSessionDialogProps {
     isOpen: boolean
@@ -26,9 +26,6 @@ export function DeleteSessionDialog({
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[400px] rounded-[2rem]">
                 <DialogHeader>
-                    <div className="size-12 rounded-2xl bg-destructive/10 flex items-center justify-center mb-4">
-                        <AlertTriangle className="size-6 text-destructive" />
-                    </div>
                     <DialogTitle className="text-2xl font-black">Delete Session?</DialogTitle>
                     <DialogDescription className="text-muted-foreground">
                         Are you sure you want to delete this session? This action cannot be undone and all data will be permanently lost.

@@ -115,6 +115,23 @@ export const deleteSession = async (sessionId: string): Promise<void> => {
     })
 }
 
+export interface OrgUser {
+    user_id: string
+    email: string
+    organization_id: string
+}
+
+export const fetchOrgUsers = async (orgId: string, email?: string): Promise<{ users: OrgUser[] }> => {
+    const query = email ? `?email=${encodeURIComponent(email)}` : ''
+    return apiFetch(`/session/organization/${orgId}${query}`)
+}
+
+export const shareSession = async (sessionId: string, targetUserId: string): Promise<{ status: string; message: string; new_session_id: string }> => {
+    return apiFetch(`/session/${sessionId}/share/user/${targetUserId}`, {
+        method: 'POST',
+    })
+}
+
 export interface SessionAsset {
     name: string
     size: number

@@ -11,7 +11,8 @@ import {
   Zap,
   Timer,
   Trash2,
-  MoreVertical
+  MoreVertical,
+  Share2
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -20,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { DeleteSessionDialog } from '@/components/delete-session-dialog'
+import { ShareSessionDialog } from '@/components/share-session-dialog'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -105,6 +107,7 @@ function DashboardPage() {
   })
 
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null)
+  const [sessionToShare, setSessionToShare] = useState<string | null>(null)
 
   // Get user details for avatar
   const userStr = localStorage.getItem('user_details')
@@ -236,6 +239,16 @@ function DashboardPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem
+                          className="cursor-pointer gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSessionToShare(session.session_id)
+                          }}
+                        >
+                          <Share2 className="size-4" />
+                          <span>Share Session</span>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2"
                           onClick={(e) => {
@@ -369,6 +382,13 @@ function DashboardPage() {
         onClose={() => setSessionToDelete(null)}
         onConfirm={() => sessionToDelete && performDelete(sessionToDelete)}
         isDeleting={isDeleting}
+      />
+
+      <ShareSessionDialog
+        isOpen={!!sessionToShare}
+        onClose={() => setSessionToShare(null)}
+        sessionId={sessionToShare}
+        orgId={user?.organization?.idOrg || null}
       />
     </div>
   )
