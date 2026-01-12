@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2, Search, User, Check } from "lucide-react"
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { fetchOrgUsers, shareSession, type OrgUser } from '@/lib/api'
+import { fetchOrgUsers, shareSessionWithUsers, type OrgUser } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -30,7 +30,7 @@ export function ShareSessionDialog({
 }: ShareSessionDialogProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedQuery, setDebouncedQuery] = useState('')
-    const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
 
     // Get current user to filter out of the list
     const userStr = localStorage.getItem('user_details')
@@ -52,12 +52,12 @@ export function ShareSessionDialog({
     })
 
     const { mutate: performShare, isPending: isSharing } = useMutation({
-        mutationFn: ({ sessionId, targetUserId }: { sessionId: string; targetUserId: string }) =>
-            shareSession(sessionId, targetUserId),
-        onSuccess: (res) => {
+        mutationFn: ({ sessionId, userIds }: { sessionId: string; userIds: string[] }) =>
+            shareSessionWithUsers(sessionId, userIds),
+        onSuccess: (res: any) => {
             toast.success(res.message || 'Session shared successfully')
             onClose()
-            setSelectedUserId(null)
+            setSelectedUserIds([])
             setSearchQuery('')
         },
         onError: (err: any) => {
@@ -67,16 +67,24 @@ export function ShareSessionDialog({
 
     const users = (data?.users || []).filter(u => u.user_id !== currentUserId)
 
+    const toggleUser = (userId: string) => {
+        setSelectedUserIds(prev =>
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
+                : [...prev, userId]
+        )
+    }
+
     const handleShare = () => {
-        if (sessionId && selectedUserId) {
-            performShare({ sessionId, targetUserId: selectedUserId })
+        if (sessionId && selectedUserIds.length > 0) {
+            performShare({ sessionId, userIds: selectedUserIds })
         }
     }
 
-    // Reset selection when search changes or dialog opens
+    // Reset selection when dialog opens
     useEffect(() => {
         if (isOpen) {
-            setSelectedUserId(null)
+            setSelectedUserIds([])
         }
     }, [isOpen])
 
@@ -114,10 +122,10 @@ export function ShareSessionDialog({
                                 {users.map((user: OrgUser) => (
                                     <button
                                         key={user.user_id}
-                                        onClick={() => setSelectedUserId(user.user_id)}
+                                        onClick={() => toggleUser(user.user_id)}
                                         className={cn(
                                             "flex items-center justify-between p-3 rounded-xl transition-all border-2 text-left group",
-                                            selectedUserId === user.user_id
+                                            selectedUserIds.includes(user.user_id)
                                                 ? "bg-primary/5 border-primary/20 shadow-sm"
                                                 : "bg-background border-transparent hover:bg-muted/50 hover:border-muted-foreground/10"
                                         )}
@@ -125,7 +133,7 @@ export function ShareSessionDialog({
                                         <div className="flex items-center gap-3">
                                             <div className={cn(
                                                 "size-10 rounded-xl flex items-center justify-center transition-colors",
-                                                selectedUserId === user.user_id
+                                                selectedUserIds.includes(user.user_id)
                                                     ? "bg-primary text-white"
                                                     : "bg-muted text-muted-foreground group-hover:bg-muted-foreground/10"
                                             )}>
@@ -140,7 +148,7 @@ export function ShareSessionDialog({
                                                 </span>
                                             </div>
                                         </div>
-                                        {selectedUserId === user.user_id && (
+                                        {selectedUserIds.includes(user.user_id) && (
                                             <div className="size-6 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20 animate-in zoom-in-50 duration-200">
                                                 <Check className="size-3.5 text-white stroke-[3]" />
                                             </div>
@@ -172,15 +180,17 @@ export function ShareSessionDialog({
                         <Button
                             className="rounded-xl flex-1 px-8 h-12 font-black shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                             onClick={handleShare}
-                            disabled={!selectedUserId || isSharing}
+                            disabled={selectedUserIds.length === 0 || isSharing}
                         >
                             {isSharing ? (
                                 <>
-                                    <Loader2 className="size-4 animate-spin mr-2" />
+                                    <Loader2 className="size-4 animate-spin" />
                                     Sharing...
                                 </>
                             ) : (
-                                "Share Session"
+                                selectedUserIds.length > 1
+                                    ? `Share with ${selectedUserIds.length} users`
+                                    : "Share Session"
                             )}
                         </Button>
                     </DialogFooter>

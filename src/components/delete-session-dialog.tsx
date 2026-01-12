@@ -46,7 +46,7 @@ export function DeleteSessionDialog({
                         onClick={onConfirm}
                         disabled={isDeleting}
                     >
-                        {isDeleting ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+                        {isDeleting ? <Loader2 className="size-4 animate-spin" /> : null}
                         Delete
                     </Button>
                 </DialogFooter>

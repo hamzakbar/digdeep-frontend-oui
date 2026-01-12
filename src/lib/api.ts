@@ -126,9 +126,10 @@ export const fetchOrgUsers = async (orgId: string, email?: string): Promise<{ us
     return apiFetch(`/session/organization/${orgId}${query}`)
 }
 
-export const shareSession = async (sessionId: string, targetUserId: string): Promise<{ status: string; message: string; new_session_id: string }> => {
-    return apiFetch(`/session/${sessionId}/share/user/${targetUserId}`, {
+export const shareSessionWithUsers = async (sessionId: string, userIds: string[]): Promise<{ status: string; message: string }> => {
+    return apiFetch(`/session/${sessionId}/share/users`, {
         method: 'POST',
+        body: JSON.stringify({ user_ids: userIds }),
     })
 }
 
