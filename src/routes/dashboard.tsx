@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, Link, useNavigate } from '@tanstack/react-router'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchSessions, startSession } from '@/lib/api'
+import { fetchSessions, startSession, deleteSession } from '@/lib/api'
 import { auth } from '@/lib/auth'
 import {
   LayoutDashboard, Clock,
@@ -9,8 +9,18 @@ import {
   Sparkles,
   Loader2,
   Zap,
-  Timer
+  Timer,
+  Trash2,
+  MoreVertical
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { DeleteSessionDialog } from '@/components/delete-session-dialog'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -81,6 +91,20 @@ function DashboardPage() {
       })
     },
   })
+
+  const { mutate: performDelete, isPending: isDeleting } = useMutation({
+    mutationFn: deleteSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] })
+      toast.success('Session deleted successfully')
+      setSessionToDelete(null)
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to delete session')
+    }
+  })
+
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null)
 
   // Get user details for avatar
   const userStr = localStorage.getItem('user_details')
@@ -190,7 +214,7 @@ function DashboardPage() {
                   className="group hover:border-primary/30 hover:bg-muted/50 transition-all duration-300 rounded-2xl p-4 relative overflow-hidden flex flex-col justify-center cursor-pointer border-border/50"
                   onClick={() => navigate({ to: '/session/$sessionId', params: { sessionId: session.session_id } })}
                 >
-                  <div className="flex justify-between items-center mb-2">
+                  <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">
                       <div className="size-8 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                         <Clock className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -200,6 +224,30 @@ function DashboardPage() {
                         <p className="text-[10px] text-muted-foreground font-mono">ID: {session.session_id.substring(0, 8)}</p>
                       </div>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-lg text-muted-foreground hover:text-foreground -mt-1 -mr-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSessionToDelete(session.session_id)
+                          }}
+                        >
+                          <Trash2 className="size-4" />
+                          <span>Delete Session</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   {session.data_context && (
@@ -315,6 +363,13 @@ function DashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DeleteSessionDialog
+        isOpen={!!sessionToDelete}
+        onClose={() => setSessionToDelete(null)}
+        onConfirm={() => sessionToDelete && performDelete(sessionToDelete)}
+        isDeleting={isDeleting}
+      />
     </div>
   )
 }

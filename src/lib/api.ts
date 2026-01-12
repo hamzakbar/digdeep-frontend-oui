@@ -109,6 +109,12 @@ export const fetchSession = async (sessionId: string): Promise<Session> => {
     return apiFetch(`/session/${sessionId}`)
 }
 
+export const deleteSession = async (sessionId: string): Promise<void> => {
+    return apiFetch(`/session/${sessionId}`, {
+        method: 'DELETE',
+    })
+}
+
 export interface SessionAsset {
     name: string
     size: number
