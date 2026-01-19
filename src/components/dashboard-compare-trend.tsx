@@ -83,10 +83,9 @@ export function DashboardCompareTrend({
                                     fontFamily="Inter, sans-serif"
                                     fontWeight={600}
                                     stroke="#888888"
-                                    tickFormatter={(value) => {
-                                        const date = new Date(value)
-                                        return format(date, "MMM dd")
-                                    }}
+                                    tickFormatter={(value) => format(new Date(value), "MMM dd")}
+                                    interval="preserveStartEnd"
+                                    minTickGap={50}
                                 />
                                 <YAxis
                                     tickLine={false}

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/chart"
 import { TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { format } from "date-fns"
 
 import { useMemo } from "react"
 import { ChartLoadingOverlay } from "@/components/chart-loading-overlay"
@@ -85,10 +86,9 @@ export function DashboardOverallForecast({
                                     fontFamily="Inter, sans-serif"
                                     fontWeight={600}
                                     stroke="#888888"
-                                    tickFormatter={(value) => {
-                                        const date = new Date(value)
-                                        return date.toLocaleDateString("en-US", { month: "short", year: "2-digit" })
-                                    }}
+                                    tickFormatter={(value) => format(new Date(value), "MMM dd")}
+                                    interval="preserveStartEnd"
+                                    minTickGap={50}
                                 />
                                 <YAxis
                                     tickLine={false}

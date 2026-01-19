@@ -92,11 +92,13 @@ export function DashboardPayerTrend({ data, groups, loading, className }: Dashbo
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
-                                    tickFormatter={(value) => format(new Date(value), "MMM yy")}
+                                    tickFormatter={(value) => format(new Date(value), "MMM dd")}
                                     fontSize={11}
                                     fontFamily="Inter, sans-serif"
                                     fontWeight={600}
                                     stroke="#888888"
+                                    interval="preserveStartEnd"
+                                    minTickGap={50}
                                 />
                                 <YAxis
                                     tickLine={false}
