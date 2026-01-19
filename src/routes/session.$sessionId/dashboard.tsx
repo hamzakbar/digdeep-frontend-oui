@@ -80,6 +80,7 @@ import { DashboardCompareTrend } from '@/components/dashboard-compare-trend'
 import { DashboardCompareTotals } from '@/components/dashboard-compare-totals'
 import { DashboardCompareKpis, type CompareKpiData } from '@/components/dashboard-compare-kpis'
 import { DashboardCompareBar } from '@/components/dashboard-compare-bar'
+import { DashboardPayerNameBreakdown } from '@/components/dashboard-payer-name-breakdown'
 
 export const Route = createFileRoute('/session/$sessionId/dashboard')({
     component: SessionDashboard,
@@ -273,6 +274,8 @@ function SessionDashboard() {
     const [payerTrendData, setPayerTrendData] = useState<any[] | null>(null)
     const [payerGroups, setPayerGroups] = useState<string[]>([])
 
+    const [payerSummaryApiData, setPayerSummaryApiData] = useState<any | null>(null)
+
     useEffect(() => {
         const loadPayerTrend = async () => {
             setIsLoadingPayerTrend(true)
@@ -286,6 +289,7 @@ function SessionDashboard() {
                 payer_groupby: payerGroupBy
             }
             try {
+                // Fetch Payer Trend
                 const data = await fetchPayerTrend(filters)
 
                 // Pivot data: group by date
@@ -308,8 +312,13 @@ function SessionDashboard() {
 
                 setPayerTrendData(pivotedData)
                 setPayerGroups(Array.from(groups))
+
+                // Fetch Payer Summary (Name Breakdown)
+                const summary = await fetchPayerSummary(filters)
+                setPayerSummaryApiData(summary)
+
             } catch (error) {
-                console.error("Failed to fetch payer trend:", error)
+                console.error("Failed to fetch payer trend/summary:", error)
             } finally {
                 setIsLoadingPayerTrend(false)
             }
@@ -1241,6 +1250,13 @@ function SessionDashboard() {
                             <DashboardPayerTrend
                                 data={payerTrendData}
                                 groups={payerGroups}
+                                loading={isLoadingPayerTrend}
+                            />
+                        </div>
+
+                        <div className="grid gap-6">
+                            <DashboardPayerNameBreakdown
+                                data={payerSummaryApiData?.payers || []}
                                 loading={isLoadingPayerTrend}
                             />
                         </div>
