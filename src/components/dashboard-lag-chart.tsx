@@ -34,9 +34,10 @@ interface DashboardLagChartProps {
     data: LagData | null
     loading?: boolean
     className?: string
+    verticalLabels?: boolean
 }
 
-export function DashboardLagChart({ data, loading, className }: DashboardLagChartProps) {
+export function DashboardLagChart({ data, loading, className, verticalLabels }: DashboardLagChartProps) {
     const chartData = data?.buckets || []
 
     return (
@@ -69,6 +70,10 @@ export function DashboardLagChart({ data, loading, className }: DashboardLagChar
                                     fontFamily="Inter, sans-serif"
                                     fontWeight={600}
                                     stroke="#888888"
+                                    interval={0}
+                                    angle={verticalLabels ? -90 : 0}
+                                    textAnchor={verticalLabels ? "end" : "middle"}
+                                    height={verticalLabels ? 60 : 30}
                                 />
                                 <YAxis
                                     tickLine={false}

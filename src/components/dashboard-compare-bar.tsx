@@ -33,6 +33,7 @@ interface DashboardCompareBarProps {
     className?: string
     formatter?: (value: any) => string
     tooltip?: React.ReactElement
+    verticalLabels?: boolean
 }
 
 export function DashboardCompareBar({
@@ -44,7 +45,8 @@ export function DashboardCompareBar({
     loading,
     className,
     formatter,
-    tooltip
+    tooltip,
+    verticalLabels
 }: DashboardCompareBarProps) {
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
@@ -76,6 +78,10 @@ export function DashboardCompareBar({
                                     fontFamily="Inter, sans-serif"
                                     fontWeight={600}
                                     stroke="#888888"
+                                    interval={0}
+                                    angle={verticalLabels ? -90 : 0}
+                                    textAnchor={verticalLabels ? "end" : "middle"}
+                                    height={verticalLabels ? 60 : 30}
                                 />
                                 <YAxis
                                     tickLine={false}

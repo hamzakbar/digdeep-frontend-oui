@@ -1235,7 +1235,7 @@ function SessionDashboard() {
                             />
                         </div>
 
-                        <DashboardLagChart data={lagData} loading={isLoadingLag} />
+                        <DashboardLagChart data={lagData} loading={isLoadingLag} verticalLabels />
 
                         <div className="grid gap-6">
                             <DashboardPayerTrend
@@ -1344,6 +1344,7 @@ function SessionDashboard() {
                                 formatter={(v) => `${v.toFixed(1)}%`}
                                 tooltip={<CptOverlapTooltip />}
                                 className="lg:col-span-12"
+                                verticalLabels
                             />
                             <DashboardCompareBar
                                 title="Compare Lag Distribution"
@@ -1353,6 +1354,7 @@ function SessionDashboard() {
                                 dataKey="bucket"
                                 loading={isLoadingCompare}
                                 className="lg:col-span-12"
+                                verticalLabels
                             />
                             <DashboardHeatmap
                                 title="Compare Department Mix %"
