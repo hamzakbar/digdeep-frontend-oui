@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/chart"
 import { cn } from "@/lib/utils"
 
+import { useMemo } from "react"
 import { ChartLoadingOverlay } from "@/components/chart-loading-overlay"
 
 interface DashboardCompareTrendProps {
@@ -38,6 +39,20 @@ export function DashboardCompareTrend({
     loading,
     className
 }: DashboardCompareTrendProps) {
+    const processedData = useMemo(() => {
+        if (!data) return null
+        const keys = Object.keys(config)
+        return data.map(point => {
+            const newPoint = { ...point }
+            keys.forEach(key => {
+                if (newPoint[key] === undefined || newPoint[key] === null) {
+                    newPoint[key] = 0
+                }
+            })
+            return newPoint
+        })
+    }, [data, config])
+
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
             <ChartLoadingOverlay isLoading={!!loading} />
@@ -51,11 +66,11 @@ export function DashboardCompareTrend({
             </CardHeader>
             <CardContent className="p-8 pt-6">
                 <div className="h-[400px] w-full">
-                    {data && data.length > 0 ? (
+                    {processedData && processedData.length > 0 ? (
                         <ChartContainer config={config} className="h-full w-full">
                             <LineChart
                                 accessibilityLayer
-                                data={data}
+                                data={processedData}
                                 margin={{ top: 20, bottom: 20, left: 0, right: 0 }}
                             >
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
@@ -96,7 +111,7 @@ export function DashboardCompareTrend({
                                         stroke={`var(--color-${key})`}
                                         strokeWidth={3}
                                         strokeDasharray={key.endsWith('_payments') ? "4 4" : "0"}
-                                        dot={data.length === 1}
+                                        dot={processedData.length === 1}
                                         activeDot={{ r: 6, strokeWidth: 0 }}
                                     />
                                 ))}
@@ -104,7 +119,7 @@ export function DashboardCompareTrend({
                         </ChartContainer>
                     ) : (
                         <div className="flex items-center justify-center h-full text-muted-foreground">
-                            {data === null ? 'Select 2 doctors to compare' : 'No data available'}
+                            {processedData === null ? 'Select 2 doctors to compare' : 'No data available'}
                         </div>
                     )}
                 </div>

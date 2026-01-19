@@ -23,6 +23,7 @@ import {
 import { TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+import { useMemo } from "react"
 import { ChartLoadingOverlay } from "@/components/chart-loading-overlay"
 
 const forecastConfig = {
@@ -43,6 +44,17 @@ export function DashboardOverallForecast({
     loading,
     className
 }: DashboardOverallForecastProps) {
+    const processedData = useMemo(() => {
+        if (!data) return null
+        return data.map(point => ({
+            ...point,
+            charges_actual: point.charges_actual ?? 0,
+            payments_actual: point.payments_actual ?? 0,
+            charges_forecast: point.charges_forecast ?? 0,
+            payments_forecast: point.payments_forecast ?? 0
+        }))
+    }, [data])
+
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
             <ChartLoadingOverlay isLoading={!!loading} />
@@ -56,11 +68,11 @@ export function DashboardOverallForecast({
             </CardHeader>
             <CardContent className="p-8 pt-6">
                 <div className="h-[400px] w-full aspect-auto">
-                    {data && data.length > 0 ? (
+                    {processedData && processedData.length > 0 ? (
                         <ChartContainer config={forecastConfig} className="h-full w-full">
                             <LineChart
                                 accessibilityLayer
-                                data={data}
+                                data={processedData}
                                 margin={{ top: 20, bottom: 20, left: 0, right: 0 }}
                             >
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />

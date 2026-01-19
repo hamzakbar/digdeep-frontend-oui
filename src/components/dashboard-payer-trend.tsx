@@ -46,6 +46,19 @@ export function DashboardPayerTrend({ data, groups, loading, className }: Dashbo
         return cfg
     }, [groups])
 
+    const processedData = useMemo(() => {
+        if (!data) return null
+        return data.map(point => {
+            const newPoint = { ...point }
+            groups.forEach(group => {
+                if (newPoint[group] === undefined || newPoint[group] === null) {
+                    newPoint[group] = 0
+                }
+            })
+            return newPoint
+        })
+    }, [data, groups])
+
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
             <ChartLoadingOverlay isLoading={!!loading} />
@@ -62,11 +75,11 @@ export function DashboardPayerTrend({ data, groups, loading, className }: Dashbo
             </CardHeader>
             <CardContent className="p-8 pt-6">
                 <div className="h-[400px] w-full">
-                    {data && data.length > 0 ? (
+                    {processedData && processedData.length > 0 ? (
                         <ChartContainer config={config} className="h-full w-full">
                             <LineChart
                                 accessibilityLayer
-                                data={data}
+                                data={processedData}
                                 margin={{
                                     left: 12,
                                     right: 12,

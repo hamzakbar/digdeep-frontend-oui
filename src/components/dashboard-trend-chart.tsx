@@ -36,6 +36,7 @@ const trendChartConfig = {
     },
 } satisfies ChartConfig
 
+import { useMemo } from "react"
 import { ChartLoadingOverlay } from "@/components/chart-loading-overlay"
 
 interface DashboardTrendChartProps {
@@ -45,6 +46,15 @@ interface DashboardTrendChartProps {
 }
 
 export function DashboardTrendChart({ data, loading, className }: DashboardTrendChartProps) {
+    const processedData = useMemo(() => {
+        if (!data) return null
+        return data.map(point => ({
+            ...point,
+            charges: point.charges ?? 0,
+            payments: point.payments ?? 0
+        }))
+    }, [data])
+
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
             <ChartLoadingOverlay isLoading={!!loading} />
@@ -59,11 +69,11 @@ export function DashboardTrendChart({ data, loading, className }: DashboardTrend
             </CardHeader>
             <CardContent className="p-8 pt-6">
                 <div className="h-[400px] w-full overflow-hidden">
-                    {data && data.length > 0 ? (
+                    {processedData && processedData.length > 0 ? (
                         <ChartContainer config={trendChartConfig} className="h-full w-full">
                             <LineChart
                                 accessibilityLayer
-                                data={data}
+                                data={processedData}
                                 margin={{
                                     left: 12,
                                     right: 12,
