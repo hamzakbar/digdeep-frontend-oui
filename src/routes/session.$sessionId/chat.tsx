@@ -60,6 +60,7 @@ interface RenderableItem {
 export function ChatPage() {
   const { sessionId } = Route.useParams()
   const [messages, setMessages] = useState<Message[]>([])
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [inputValue, setInputValue] = useState('')
   const { isStreaming, setIsStreaming } = useStreaming()
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
@@ -93,8 +94,84 @@ export function ChatPage() {
   }
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    // Small timeout to allow layout to settle (tabs switching, etc)
+    const timeoutId = setTimeout(() => {
+      scrollToBottom()
+    }, 100)
+    return () => clearTimeout(timeoutId)
+  }, [messages, activeTab])
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      // If we already have messages, don't reload history to avoid overwrites/duplicates
+      // unless we want to support real-time sync, but for now this is safer.
+      if (messages.length > 0) return
+
+      try {
+        const { fetchTaskHistory } = await import('@/lib/api')
+        const history = await fetchTaskHistory(sessionId)
+
+        const historyMessages: Message[] = []
+        const seenKeys = new Set<string>()
+
+        history.forEach((item: any, idx) => {
+          const userContent = item.user_task || item.task
+          const agentContent = item.final_answer || item.result
+          const timestampStr = item.timestamp || ''
+
+          // Create a unique key for deduplication
+          const uniqueKey = `${timestampStr}-${userContent?.substring(0, 50)}`
+
+          if (seenKeys.has(uniqueKey)) {
+            return
+          }
+          seenKeys.add(uniqueKey)
+
+          // User message
+
+          // User message
+          if (userContent) {
+            historyMessages.push({
+              id: `history-user-${idx}`,
+              role: 'user',
+              content: userContent,
+              timestamp: item.timestamp ? new Date(item.timestamp) : new Date(Date.now() - 1000)
+            })
+          }
+
+          // Agent message(s)
+          if (agentContent) {
+            if (agentContent.includes('event:')) {
+              const parsedEvents = parseStream(agentContent)
+              parsedEvents.forEach((p, pIdx) => {
+                historyMessages.push({
+                  id: `history-agent-${idx}-${pIdx}`,
+                  role: 'agent',
+                  parsed: p,
+                  timestamp: item.timestamp ? new Date(item.timestamp) : new Date()
+                })
+              })
+            } else {
+              historyMessages.push({
+                id: `history-agent-${idx}`,
+                role: 'agent',
+                content: agentContent,
+                timestamp: item.timestamp ? new Date(item.timestamp) : new Date()
+              })
+            }
+          }
+        })
+
+        setMessages(historyMessages)
+      } catch (err) {
+        console.error('Failed to load chat history:', err)
+      } finally {
+        setIsInitialLoading(false)
+      }
+    }
+
+    loadHistory()
+  }, [sessionId])
 
   const queryClient = useQueryClient()
 
@@ -399,7 +476,13 @@ export function ChatPage() {
                 className='flex-1 overflow-y-auto px-8 py-10 space-y-10 scrollbar-hide outline-none'
                 tabIndex={0}
               >
-                {messages.length === 0 && (
+                {isInitialLoading && (
+                  <div className="flex-1 flex flex-col items-center justify-center py-20 gap-4 opacity-40">
+                    <Loader2 className="size-10 animate-spin text-primary" />
+                    <p className="text-xs font-bold uppercase tracking-widest">Loading conversation...</p>
+                  </div>
+                )}
+                {!isInitialLoading && messages.length === 0 && (
                   <div className='flex-1 flex flex-col items-center justify-center py-20 animate-in fade-in zoom-in duration-1000'>
                     <div className='text-center space-y-6 mb-12'>
                       <div className='size-20 rounded-[2.5rem] bg-primary/10 flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-primary/20 relative group'>

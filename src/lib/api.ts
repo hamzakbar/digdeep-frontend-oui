@@ -109,6 +109,20 @@ export const fetchSession = async (sessionId: string): Promise<Session> => {
     return apiFetch(`/session/${sessionId}`)
 }
 
+export interface TaskHistoryItem {
+    task: string
+    user_task?: string
+    result: string
+    final_answer?: string
+    timestamp: string
+    status: string
+}
+
+export const fetchTaskHistory = async (sessionId: string): Promise<TaskHistoryItem[]> => {
+    const result = await apiFetch(`/session/${sessionId}/task_history`)
+    return result.history || result.data || result || []
+}
+
 export const deleteSession = async (sessionId: string): Promise<void> => {
     return apiFetch(`/session/${sessionId}`, {
         method: 'DELETE',
