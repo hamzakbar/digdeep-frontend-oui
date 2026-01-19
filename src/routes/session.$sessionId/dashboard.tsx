@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import {
     Filter,
     Calendar as CalendarIcon,
@@ -17,10 +17,7 @@ import {
     DollarSign,
     Percent,
     Layers,
-    User,
-    Activity,
-    AlertCircle,
-    LineChart as ForecastIcon
+    User
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -49,8 +46,8 @@ import {
     fetchDoctorCompare,
     fetchHeatmap,
     fetchPayerSummary,
-    fetchOverallForecast,
-    fetchDeptForecast,
+    // fetchOverallForecast,
+    // fetchDeptForecast,
     type DashboardFilter,
     type KPIData,
     type TimeSeriesPoint,
@@ -64,7 +61,7 @@ import {
     type Lookups,
     type DoctorCompareData,
     type HeatmapPoint,
-    type ForecastData,
+    // type ForecastData,
     fetchDoctorDepartmentCPTsMulti
 } from '@/lib/api'
 
@@ -83,9 +80,6 @@ import { DashboardCompareTrend } from '@/components/dashboard-compare-trend'
 import { DashboardCompareTotals } from '@/components/dashboard-compare-totals'
 import { DashboardCompareKpis, type CompareKpiData } from '@/components/dashboard-compare-kpis'
 import { DashboardCompareBar } from '@/components/dashboard-compare-bar'
-import { DashboardForecastControls } from '@/components/dashboard-forecast-controls'
-import { DashboardOverallForecast } from '@/components/dashboard-overall-forecast'
-import { DashboardDepartmentForecast } from '@/components/dashboard-department-forecast'
 
 export const Route = createFileRoute('/session/$sessionId/dashboard')({
     component: SessionDashboard,
@@ -110,9 +104,9 @@ function SessionDashboard() {
     const [compareDoctors, setCompareDoctors] = useState<string[]>([])
     const [payerGroupBy, setPayerGroupBy] = useState<'payer_type' | 'payer_source_label' | 'payer_name'>('payer_type')
     const [topN, setTopN] = useState<number>(15)
-    const [forecastFrequency, setForecastFrequency] = useState<string>('W')
-    const [forecastHorizon, setForecastHorizon] = useState<number>(12)
-    const [forecastMethod, setForecastMethod] = useState<string>('ets')
+    // const [forecastFrequency, setForecastFrequency] = useState<string>('W')
+    // const [forecastHorizon, setForecastHorizon] = useState<number>(12)
+    // const [forecastMethod, setForecastMethod] = useState<string>('ets')
 
     // Loading States
     const [isLoadingKPIs, setIsLoadingKPIs] = useState(false)
@@ -125,7 +119,7 @@ function SessionDashboard() {
     const [isLoadingDrilldownDepts, setIsLoadingDrilldownDepts] = useState(false)
     const [isLoadingDrilldownCPTs, setIsLoadingDrilldownCPTs] = useState(false)
     const [isLoadingCompare, setIsLoadingCompare] = useState(false)
-    const [isLoadingForecasts, setIsLoadingForecasts] = useState(false)
+    // const [isLoadingForecasts, setIsLoadingForecasts] = useState(false)
 
     const [lookups, setLookups] = useState<Lookups>({ doctors: [], departments: [], facilities: [] })
 
@@ -694,82 +688,82 @@ function SessionDashboard() {
     }, [compareDoctors, lookups.doctors])
 
 
-    const [overallForecast, setOverallForecast] = useState<ForecastData | null>(null)
-    const [overallForecastMetricPivoted, setOverallForecastMetricPivoted] = useState<any[] | null>(null)
-    const [deptChargesForecast, setDeptChargesForecast] = useState<any[] | null>(null)
-    const [deptPaymentsForecast, setDeptPaymentsForecast] = useState<any[] | null>(null)
-    const [deptForecastGroups, setDeptForecastGroups] = useState<string[]>([])
+    // const [overallForecast, setOverallForecast] = useState<ForecastData | null>(null)
+    // const [overallForecastMetricPivoted, setOverallForecastMetricPivoted] = useState<any[] | null>(null)
+    // const [deptChargesForecast, setDeptChargesForecast] = useState<any[] | null>(null)
+    // const [deptPaymentsForecast, setDeptPaymentsForecast] = useState<any[] | null>(null)
+    // const [deptForecastGroups, setDeptForecastGroups] = useState<string[]>([])
 
-    useEffect(() => {
-        const loadForecasts = async () => {
-            setIsLoadingForecasts(true)
-            const filters: DashboardFilter & { freq: string, horizon: number, charges_method: string } = {
-                start_date: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
-                end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
-                date_basis: dateBasis,
-                doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: resolveDeptIds(selectedDepartment),
-                facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined,
-                payer_groupby: payerGroupBy,
-                freq: forecastFrequency,
-                horizon: forecastHorizon,
-                charges_method: forecastMethod
-            }
-            try {
-                const ofc = await fetchOverallForecast(filters)
-                setOverallForecast(ofc)
+    // useEffect(() => {
+    //     const loadForecasts = async () => {
+    //         setIsLoadingForecasts(true)
+    //         const filters: DashboardFilter & { freq: string, horizon: number, charges_method: string } = {
+    //             start_date: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+    //             end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
+    //             date_basis: dateBasis,
+    //             doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
+    //             department_ids: resolveDeptIds(selectedDepartment),
+    //             facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined,
+    //             payer_groupby: payerGroupBy,
+    //             freq: forecastFrequency,
+    //             horizon: forecastHorizon,
+    //             charges_method: forecastMethod
+    //         }
+    //         try {
+    //             const ofc = await fetchOverallForecast(filters)
+    //             setOverallForecast(ofc)
 
-                // Pivot overall forecast for dual line chart
-                const overallMap = new Map<string, any>()
-                ofc.rows.forEach(p => {
-                    if (!overallMap.has(p.date)) overallMap.set(p.date, { date: p.date })
-                    const row = overallMap.get(p.date)
-                    row[`${p.metric}_actual`] = p.actual
-                    row[`${p.metric}_forecast`] = p.forecast
-                })
-                setOverallForecastMetricPivoted(Array.from(overallMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+    //             // Pivot overall forecast for dual line chart
+    //             const overallMap = new Map<string, any>()
+    //             ofc.rows.forEach(p => {
+    //                 if (!overallMap.has(p.date)) overallMap.set(p.date, { date: p.date })
+    //                 const row = overallMap.get(p.date)
+    //                 row[`${p.metric}_actual`] = p.actual
+    //                 row[`${p.metric}_forecast`] = p.forecast
+    //             })
+    //             setOverallForecastMetricPivoted(Array.from(overallMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
 
-                const dfc = await fetchDeptForecast(filters)
-                // Pivot department forecasts
-                const chMap = new Map<string, any>()
-                const pmMap = new Map<string, any>()
-                const groups = new Set<string>()
+    //             const dfc = await fetchDeptForecast(filters)
+    //             // Pivot department forecasts
+    //             const chMap = new Map<string, any>()
+    //             const pmMap = new Map<string, any>()
+    //             const groups = new Set<string>()
 
-                dfc.rows.forEach(p => {
-                    const normalizedDept = p.department.replace(/[^a-zA-Z0-9]/g, '_')
-                    groups.add(p.department)
-                    if (p.metric === 'charges') {
-                        if (!chMap.has(p.date)) chMap.set(p.date, { date: p.date })
-                        chMap.get(p.date)[normalizedDept] = p.forecast
-                    } else {
-                        if (!pmMap.has(p.date)) pmMap.set(p.date, { date: p.date })
-                        pmMap.get(p.date)[normalizedDept] = p.forecast
-                    }
-                })
-                setDeptChargesForecast(Array.from(chMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
-                setDeptPaymentsForecast(Array.from(pmMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
-                setDeptForecastGroups(Array.from(groups))
+    //             dfc.rows.forEach(p => {
+    //                 const normalizedDept = p.department.replace(/[^a-zA-Z0-9]/g, '_')
+    //                 groups.add(p.department)
+    //                 if (p.metric === 'charges') {
+    //                     if (!chMap.has(p.date)) chMap.set(p.date, { date: p.date })
+    //                     chMap.get(p.date)[normalizedDept] = p.forecast
+    //                 } else {
+    //                     if (!pmMap.has(p.date)) pmMap.set(p.date, { date: p.date })
+    //                     pmMap.get(p.date)[normalizedDept] = p.forecast
+    //                 }
+    //             })
+    //             setDeptChargesForecast(Array.from(chMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+    //             setDeptPaymentsForecast(Array.from(pmMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+    //             setDeptForecastGroups(Array.from(groups))
 
-            } catch (error) {
-                console.error("Failed to fetch forecasts:", error)
-            } finally {
-                setIsLoadingForecasts(false)
-            }
-        }
-        loadForecasts()
-    }, [dateRange, dateBasis, selectedDoctor, selectedDepartment, selectedFacilities, payerGroupBy, forecastFrequency, forecastHorizon, forecastMethod])
+    //         } catch (error) {
+    //             console.error("Failed to fetch forecasts:", error)
+    //         } finally {
+    //             setIsLoadingForecasts(false)
+    //         }
+    //     }
+    //     loadForecasts()
+    // }, [dateRange, dateBasis, selectedDoctor, selectedDepartment, selectedFacilities, payerGroupBy, forecastFrequency, forecastHorizon, forecastMethod])
 
-    const dynamicDeptForecastConfig = useMemo(() => {
-        const config: any = {}
-        deptForecastGroups.forEach((group, index) => {
-            const normalizedDept = group.replace(/[^a-zA-Z0-9]/g, '_')
-            config[normalizedDept] = {
-                label: group,
-                color: `var(--chart-${(index % 5) + 1})`
-            }
-        })
-        return config
-    }, [deptForecastGroups])
+    // const dynamicDeptForecastConfig = useMemo(() => {
+    //     const config: any = {}
+    //     deptForecastGroups.forEach((group, index) => {
+    //         const normalizedDept = group.replace(/[^a-zA-Z0-9]/g, '_')
+    //         config[normalizedDept] = {
+    //             label: group,
+    //             color: `var(--chart-${(index % 5) + 1})`
+    //         }
+    //     })
+    //     return config
+    // }, [deptForecastGroups])
 
 
 
@@ -1152,10 +1146,10 @@ function SessionDashboard() {
                             <GitCompare className="size-4 group-data-[state=active]:scale-110 transition-transform" />
                             Compare
                         </TabsTrigger>
-                        <TabsTrigger value="forecasts" className="rounded-xl gap-2 font-bold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-300 group">
+                        {/* <TabsTrigger value="forecasts" className="rounded-xl gap-2 font-bold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-300 group">
                             <ForecastIcon className="size-4 group-data-[state=active]:scale-110 transition-transform" />
                             Forecasts
-                        </TabsTrigger>
+                        </TabsTrigger> */}
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-10 outline-none animate-in fade-in-50 duration-500">
@@ -1348,7 +1342,7 @@ function SessionDashboard() {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="forecasts" className="outline-none animate-in fade-in-50 duration-500">
+                    {/* <TabsContent value="forecasts" className="outline-none animate-in fade-in-50 duration-500">
                         <div className="grid gap-6">
                             <DashboardForecastControls
                                 frequency={forecastFrequency}
@@ -1448,7 +1442,7 @@ function SessionDashboard() {
                                 </CardContent>
                             </Card>
                         </div>
-                    </TabsContent>
+                    </TabsContent> */}
                 </Tabs >
             </div >
         </div >
