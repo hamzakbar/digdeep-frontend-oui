@@ -68,13 +68,8 @@ export function ChatPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  const userStr = localStorage.getItem('user_details')
-  const user = userStr ? JSON.parse(userStr) : null
-  const userName = user?.firstName || ''
-
   const chips = [
-    "RED Report for December 2025",
-    userName ? `Give me insights for ${userName}` : "Give me insights for me"
+    "RED Report for December 2025"
   ]
 
   useEffect(() => {

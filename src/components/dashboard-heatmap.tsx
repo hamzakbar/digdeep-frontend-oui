@@ -8,9 +8,12 @@ import {
 import { Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { type HeatmapPoint } from "@/lib/api"
+import { useMemo } from "react"
 import { ChartLoadingOverlay } from "@/components/chart-loading-overlay"
 
 interface DashboardHeatmapProps {
+    title?: string
+    description?: string
     data: HeatmapPoint[] | null
     matrix: any[] | null
     departments: string[]
@@ -22,6 +25,8 @@ interface DashboardHeatmapProps {
 }
 
 export function DashboardHeatmap({
+    title = "Doctor x Department Heatmap",
+    description = "Charges distribution by provider and department",
     data,
     matrix,
     departments,
@@ -31,7 +36,20 @@ export function DashboardHeatmap({
     loading,
     className
 }: DashboardHeatmapProps) {
-    const maxCharges = data ? Math.max(...data.map(d => d.charges), 1) : 1
+    const maxCharges = useMemo(() => {
+        if (data && data.length > 0) return Math.max(...data.map(d => d.charges), 1)
+        if (matrix && matrix.length > 0) {
+            let max = 1
+            matrix.forEach(row => {
+                departments.forEach(dept => {
+                    const val = row[dept]?.charges || 0
+                    if (val > max) max = val
+                })
+            })
+            return max
+        }
+        return 1
+    }, [data, matrix, departments])
 
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
@@ -39,8 +57,8 @@ export function DashboardHeatmap({
             <CardHeader className="p-8 pb-0">
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle className="text-xl font-black">Doctor x Department Heatmap</CardTitle>
-                        <CardDescription className="text-xs font-medium">Charges distribution by provider and department</CardDescription>
+                        <CardTitle className="text-xl font-black">{title}</CardTitle>
+                        <CardDescription className="text-xs font-medium">{description}</CardDescription>
                     </div>
                 </div>
             </CardHeader>
@@ -79,7 +97,9 @@ export function DashboardHeatmap({
                                                     {row.doctor}
                                                 </td>
                                                 {departments.map(dept => {
-                                                    const val = row[dept] || 0
+                                                    const cellData = row[dept] || { charges: 0, payments: 0 }
+                                                    const val = cellData.charges
+                                                    const payments = cellData.payments
                                                     // Use logarithmic scale for better visual distribution
                                                     const intensity = val > 0 ? Math.log(val + 1) / Math.log(maxCharges + 1) : 0
 
@@ -99,15 +119,21 @@ export function DashboardHeatmap({
                                                                         ? `color-mix(in srgb, var(--chart-1), transparent ${Math.round(100 - (intensity * 100))}%)`
                                                                         : 'rgba(0,0,0,0.02)',
                                                                 }}
-                                                                title={`${row.doctor} - ${dept}: $${val.toLocaleString()}`}
                                                             >
                                                                 {val > 0 ? (
                                                                     <>
+                                                                        <div className="absolute inset-0 opacity-0 group-hover/cell:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm z-50 flex flex-col items-center justify-center pointer-events-none">
+                                                                            <div className="text-[9px] font-bold text-white/70 uppercase tracking-tighter">Charges</div>
+                                                                            <div className="text-[11px] font-black text-white">${(val || 0).toLocaleString()}</div>
+                                                                            <div className="h-px w-8 bg-white/20 my-1" />
+                                                                            <div className="text-[9px] font-bold text-white/70 uppercase tracking-tighter">Payments</div>
+                                                                            <div className="text-[11px] font-black text-emerald-400">${(payments || 0).toLocaleString()}</div>
+                                                                        </div>
                                                                         <span
                                                                             className="text-[10px] font-black tracking-tight z-10"
                                                                             style={{ color: intensity > 0.5 ? 'white' : 'inherit' }}
                                                                         >
-                                                                            ${(val / 1000).toFixed(1)}k
+                                                                            {cellData.label || `$${(val / 1000).toFixed(1)}k`}
                                                                         </span>
                                                                         <div
                                                                             className="absolute inset-0 bg-white/20 opacity-0 group-hover/cell:opacity-100 transition-opacity"

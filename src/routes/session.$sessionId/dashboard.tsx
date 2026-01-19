@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
     Filter,
     Calendar as CalendarIcon,
@@ -17,7 +17,10 @@ import {
     DollarSign,
     Percent,
     Layers,
-    User
+    User,
+    Activity,
+    AlertCircle,
+    LineChart as ForecastIcon
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -33,7 +36,38 @@ import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
 import { type DateRange } from 'react-day-picker'
 import { useEffect } from 'react'
-import { fetchKPIs, fetchDoctorTimeSeries, fetchDoctorTotals, fetchPaymentLag, fetchPayerTrend, fetchCPTMix, fetchUnpaidCPT, fetchUnallocatedPayments, fetchDoctorDepartments, fetchDoctorDepartmentCPTs, fetchLookups, fetchDoctorCompare, fetchHeatmap, type DashboardFilter, type KPIData, type TimeSeriesPoint, type DoctorTotal, type LagPoint, type CPTMixPoint, type UnpaidCPTPoint, type UnallocatedSummary, type DoctorDepartmentPoint, type DoctorDepartmentCPTPoint, type Lookups, type DoctorCompareData, type HeatmapPoint } from '@/lib/api'
+import {
+    fetchKPIs,
+    fetchDoctorTimeSeries,
+    fetchDoctorTotals,
+    fetchPaymentLag,
+    fetchPayerTrend,
+    fetchCPTMix,
+    fetchUnpaidCPT,
+    fetchUnallocatedPayments,
+    fetchDoctorDepartments, fetchLookups,
+    fetchDoctorCompare,
+    fetchHeatmap,
+    fetchPayerSummary,
+    fetchOverallForecast,
+    fetchDeptForecast,
+    type DashboardFilter,
+    type KPIData,
+    type TimeSeriesPoint,
+    type DoctorTotal,
+    type LagData,
+    type CPTMixPoint,
+    type UnpaidCPTPoint,
+    type UnallocatedSummary,
+    type DoctorDepartmentPoint,
+    type DoctorDepartmentCPTPoint,
+    type Lookups,
+    type DoctorCompareData,
+    type HeatmapPoint,
+    type ForecastData,
+    fetchDoctorDepartmentCPTsMulti
+} from '@/lib/api'
+
 import { DashboardStatsCard } from '@/components/dashboard-stats-card'
 import { DashboardTrendChart } from '@/components/dashboard-trend-chart'
 import { DashboardDoctorTotals } from '@/components/dashboard-doctor-totals'
@@ -47,7 +81,11 @@ import { DashboardDepartmentBreakdown } from '@/components/dashboard-department-
 import { DashboardCptBreakdown } from '@/components/dashboard-cpt-breakdown'
 import { DashboardCompareTrend } from '@/components/dashboard-compare-trend'
 import { DashboardCompareTotals } from '@/components/dashboard-compare-totals'
-import { DashboardCompareDepartments } from '@/components/dashboard-compare-departments'
+import { DashboardCompareKpis, type CompareKpiData } from '@/components/dashboard-compare-kpis'
+import { DashboardCompareBar } from '@/components/dashboard-compare-bar'
+import { DashboardForecastControls } from '@/components/dashboard-forecast-controls'
+import { DashboardOverallForecast } from '@/components/dashboard-overall-forecast'
+import { DashboardDepartmentForecast } from '@/components/dashboard-department-forecast'
 
 export const Route = createFileRoute('/session/$sessionId/dashboard')({
     component: SessionDashboard,
@@ -72,9 +110,9 @@ function SessionDashboard() {
     const [compareDoctors, setCompareDoctors] = useState<string[]>([])
     const [payerGroupBy, setPayerGroupBy] = useState<'payer_type' | 'payer_source_label' | 'payer_name'>('payer_type')
     const [topN, setTopN] = useState<number>(15)
-    // const [forecastFrequency, setForecastFrequency] = useState<string>('W')
-    // const [forecastHorizon, setForecastHorizon] = useState<number>(12)
-    // const [forecastMethod, setForecastMethod] = useState<string>('ets')
+    const [forecastFrequency, setForecastFrequency] = useState<string>('W')
+    const [forecastHorizon, setForecastHorizon] = useState<number>(12)
+    const [forecastMethod, setForecastMethod] = useState<string>('ets')
 
     // Loading States
     const [isLoadingKPIs, setIsLoadingKPIs] = useState(false)
@@ -87,7 +125,7 @@ function SessionDashboard() {
     const [isLoadingDrilldownDepts, setIsLoadingDrilldownDepts] = useState(false)
     const [isLoadingDrilldownCPTs, setIsLoadingDrilldownCPTs] = useState(false)
     const [isLoadingCompare, setIsLoadingCompare] = useState(false)
-    // const [isLoadingForecasts, setIsLoadingForecasts] = useState(false)
+    const [isLoadingForecasts, setIsLoadingForecasts] = useState(false)
 
     const [lookups, setLookups] = useState<Lookups>({ doctors: [], departments: [], facilities: [] })
 
@@ -103,6 +141,21 @@ function SessionDashboard() {
         loadLookups()
     }, [])
 
+
+    const deptNameToIds = useMemo(() => {
+        const mapping: Record<string, number[]> = {}
+        lookups.departments.forEach(d => {
+            if (!mapping[d.name]) mapping[d.name] = []
+            mapping[d.name].push(d.id)
+        })
+        return mapping
+    }, [lookups.departments])
+
+    const resolveDeptIds = (name: string) => {
+        if (!name || name === 'all') return undefined
+        return deptNameToIds[name]
+    }
+
     const [kpiData, setKpiData] = useState<KPIData | null>(null)
 
     useEffect(() => {
@@ -113,7 +166,7 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined
             }
             try {
@@ -138,7 +191,7 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined
             }
             try {
@@ -181,7 +234,7 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined
             }
             try {
@@ -198,7 +251,7 @@ function SessionDashboard() {
         loadDoctorTotals()
     }, [dateRange, dateBasis, selectedDoctor, selectedDepartment, selectedFacilities])
 
-    const [lagData, setLagData] = useState<LagPoint[] | null>(null)
+    const [lagData, setLagData] = useState<LagData | null>(null)
 
     useEffect(() => {
         const loadLagData = async () => {
@@ -208,7 +261,7 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined
             }
             try {
@@ -234,7 +287,7 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined,
                 payer_groupby: payerGroupBy
             }
@@ -284,7 +337,7 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined,
                 top_n: topN
             }
@@ -316,7 +369,7 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined
             }
             try {
@@ -332,7 +385,7 @@ function SessionDashboard() {
                     const row: any = { doctor: doc }
                     depts.forEach(dept => {
                         const match = data.find(d => d.doctor === doc && d.department === dept)
-                        row[dept] = match ? match.charges : 0
+                        row[dept] = match ? { charges: match.charges, payments: match.payments } : { charges: 0, payments: 0 }
                     })
                     return row
                 })
@@ -387,11 +440,11 @@ function SessionDashboard() {
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
                 doctor_ids: [parseInt(selectedDoctor)],
-                department_ids: [parseInt(selectedDepartment)],
+                department_ids: resolveDeptIds(selectedDepartment),
                 facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined
             }
             try {
-                const data = await fetchDoctorDepartmentCPTs(filters)
+                const data = await fetchDoctorDepartmentCPTsMulti(filters)
                 setDrilldownCptData(data)
             } catch (error) {
                 console.error("Failed to fetch drilldown CPTs:", error)
@@ -402,22 +455,30 @@ function SessionDashboard() {
         loadDrilldownCPTs()
     }, [dateRange, dateBasis, selectedDoctor, selectedDepartment, selectedFacilities])
 
-    const handleDepartmentBarClick = (data: DoctorDepartmentPoint) => {
-        if (data?.department_id) {
-            setSelectedDepartment(data.department_id.toString())
-        }
-    }
 
     const [compareApiData, setCompareApiData] = useState<DoctorCompareData | null>(null)
+    const [compareKpiData, setCompareKpiData] = useState<CompareKpiData[] | null>(null)
     const [compareTrendPivoted, setCompareTrendPivoted] = useState<any[] | null>(null)
-    const [compareDeptPivoted, setCompareDeptPivoted] = useState<any[] | null>(null)
+    const [compareHeatmapMatrix, setCompareHeatmapMatrix] = useState<{ doctor: string, [dept: string]: any }[] | null>(null)
+    const [compareHeatmapDepts, setCompareHeatmapDepts] = useState<string[]>([])
+    const [compareCptHeatmapMatrix, setCompareCptHeatmapMatrix] = useState<any[] | null>(null)
+    const [compareCptHeatmapCodes, setCompareCptHeatmapCodes] = useState<string[]>([])
+    const [comparePayerMixPivoted, setComparePayerMixPivoted] = useState<any[] | null>(null)
+    const [compareCptOverlapPivoted, setCompareCptOverlapPivoted] = useState<any[] | null>(null)
+    const [compareLagPivoted, setCompareLagPivoted] = useState<any[] | null>(null)
+    const [compareDeptMixMatrix, setCompareDeptMixMatrix] = useState<any[] | null>(null)
 
     useEffect(() => {
         const loadCompareData = async () => {
             if (compareDoctors.length !== 2) {
                 setCompareApiData(null)
                 setCompareTrendPivoted([])
-                setCompareDeptPivoted([])
+                setCompareKpiData(null)
+                setCompareCptHeatmapMatrix(null)
+                setComparePayerMixPivoted(null)
+                setCompareCptOverlapPivoted(null)
+                setCompareLagPivoted(null)
+                setCompareDeptMixMatrix(null)
                 return
             }
             setIsLoadingCompare(true)
@@ -425,146 +486,290 @@ function SessionDashboard() {
                 start_date: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
                 end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
                 date_basis: dateBasis,
-                doctor_ids: compareDoctors.map(id => parseInt(id))
+                doctor_ids: compareDoctors.map(id => parseInt(id)),
+                top_n: topN
             }
             try {
                 const data = await fetchDoctorCompare(filters)
+                if (!data) {
+                    throw new Error("No data returned from doctor-compare")
+                }
                 setCompareApiData(data)
 
-                // Pivot series for trend chart
+                // KPI Data for comparison cards
+                const kpis: CompareKpiData[] = await Promise.all(compareDoctors.map(async (docId) => {
+                    const docIdInt = parseInt(docId)
+                    const fDoc: DashboardFilter = {
+                        start_date: filters.start_date,
+                        end_date: filters.end_date,
+                        date_basis: filters.date_basis,
+                        doctor_ids: [docIdInt]
+                    }
+                    const lagResp = await fetchPaymentLag(fDoc)
+                    const totals = (data.totals || []).find(t => t.doctor_id === docIdInt)
+
+                    return {
+                        doctor_id: docIdInt,
+                        doctor_name: totals?.doctor || `Doctor ${docId}`,
+                        total_charges: totals?.charges || 0,
+                        total_payments: totals?.payments || 0,
+                        collection_rate: totals?.charges ? (totals.payments / totals.charges) : 0,
+                        lag_avg: lagResp.summary.avg,
+                        lag_median: lagResp.summary.median
+                    }
+                }))
+                setCompareKpiData(kpis)
+
+                // Pivot series for trend chart (CUMULATIVE as per dashboard.py)
                 const seriesMap = new Map<string, any>()
-                data.series.forEach(p => {
+                const seriesData = data.series || []
+                const sortedPoints = [...seriesData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+                const runningTotals: Record<string, { charges: number, payments: number }> = {}
+                sortedPoints.forEach(p => {
                     const dStr = p.date
                     if (!seriesMap.has(dStr)) seriesMap.set(dStr, { date: dStr })
                     const row = seriesMap.get(dStr)
-                    const docClean = p.doctor.replace(/[^a-zA-Z0-9]/g, '_')
-                    row[`${docClean}_charges`] = p.charges
-                    row[`${docClean}_payments`] = p.payments
-                })
-                setCompareTrendPivoted(Array.from(seriesMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+                    const docName = p?.doctor || "Unknown"
+                    if (!runningTotals[docName]) runningTotals[docName] = { charges: 0, payments: 0 }
 
-                // Pivot departments for comparison
-                const deptMap = new Map<string, any>()
-                Object.entries(data.departments).forEach(([docId, dpts]) => {
+                    runningTotals[docName].charges += (p?.charges || 0)
+                    runningTotals[docName].payments += (p?.payments || 0)
+
+                    const docClean = docName.replace(/[^a-zA-Z0-9]/g, '_')
+                    row[`${docClean}_charges`] = runningTotals[docName].charges
+                    row[`${docClean}_payments`] = runningTotals[docName].payments
+                })
+                setCompareTrendPivoted(Array.from(seriesMap.values()))
+
+                // Create heatmap matrix for comparison
+                const departmentsData = data.departments || {}
+                const compDepts = Array.from(new Set(Object.values(departmentsData).flatMap(d => (d || []).map(dp => dp.department_name)))).sort()
+                setCompareHeatmapDepts(compDepts)
+
+                const compMatrix = compareDoctors.map(docId => {
+                    const doc = lookups.doctors.find(d => d.id.toString() === docId)
+                    const docName = doc?.name || `Doctor ${docId}`
+                    const row: any = { doctor: docName }
+                    // Try matching docDepts by ID or by Name
+                    const docDepts = departmentsData[docId] || departmentsData[docName] || []
+                    compDepts.forEach(dept => {
+                        const match = docDepts.find(d => d?.department_name === dept)
+                        row[dept] = match ? { charges: match.charges || 0, payments: match.payments || 0 } : { charges: 0, payments: 0 }
+                    })
+                    return row
+                })
+                setCompareHeatmapMatrix(compMatrix)
+
+                // CPT Heatmap
+                const cptHeatmap = data?.cpt_heatmap || []
+                const cptCodes = Array.from(new Set(cptHeatmap.filter(c => !!c?.CPTCode).map(c => c.CPTCode))).sort()
+                setCompareCptHeatmapCodes(cptCodes as string[])
+                const cptMatrix = compareDoctors.map(docId => {
+                    const doc = lookups.doctors.find(d => d.id.toString() === docId)
+                    const docName = doc?.name || `Doctor ${docId}`
+                    const row: any = { doctor: docName }
+                    cptCodes.forEach(code => {
+                        // Match by ID if available, otherwise by Name
+                        const match = cptHeatmap.find(c =>
+                            (c?.doctor_id?.toString() === docId || c?.doctor === docName) &&
+                            c?.CPTCode === code
+                        )
+                        row[code as string] = match ? { charges: match.charges || 0, payments: match.payments || 0 } : { charges: 0, payments: 0 }
+                    })
+                    return row
+                })
+                setCompareCptHeatmapMatrix(cptMatrix)
+
+                // Payer mix, CPT mix, Lag side-by-side
+                const payerMap = new Map<string, any>()
+                const cptOverlapMap = new Map<string, any>()
+                const lagBucketMap = new Map<string, any>()
+
+                await Promise.all(compareDoctors.map(async (docId) => {
                     const docName = lookups.doctors.find(d => d.id.toString() === docId)?.name || `Doctor ${docId}`
                     const docClean = docName.replace(/[^a-zA-Z0-9]/g, '_')
-                    dpts.forEach(dp => {
-                        if (!deptMap.has(dp.department_name)) {
-                            deptMap.set(dp.department_name, { department_name: dp.department_name })
-                        }
-                        const row = deptMap.get(dp.department_name)
-                        row[`${docClean}_charges`] = dp.charges
-                        row[`${docClean}_payments`] = dp.payments
+                    const fDoc = { ...filters, doctor_ids: [parseInt(docId)] }
+
+                    const [payerResp, cptResp, lagResp] = await Promise.all([
+                        fetchPayerSummary(fDoc),
+                        fetchCPTMix(fDoc),
+                        fetchPaymentLag(fDoc)
+                    ])
+
+                    // Payer Mix (Payments)
+                    payerResp.payers.forEach((p: any) => {
+                        if (!payerMap.has(p.payer_type)) payerMap.set(p.payer_type, { payer_type: p.payer_type })
+                        payerMap.get(p.payer_type)[docClean] = (payerMap.get(p.payer_type)[docClean] || 0) + p.payments
                     })
+
+                    // CPT Mix Overlap (% charges)
+                    const totalCharges = (cptResp || []).reduce((acc: number, c: CPTMixPoint) => acc + (c?.charges || 0), 0)
+                        ; (cptResp || []).forEach((c: CPTMixPoint) => {
+                            if (!c?.CPTCode) return
+                            if (!cptOverlapMap.has(c.CPTCode)) cptOverlapMap.set(c.CPTCode, { CPTCode: c.CPTCode, ProcedureDescription: c.ProcedureDescription })
+                            cptOverlapMap.get(c.CPTCode)[docClean] = totalCharges ? ((c?.charges || 0) / totalCharges) * 100 : 0
+                        })
+
+                        // Lag Distribution
+                        ; (lagResp?.buckets || []).forEach((b: any) => {
+                            if (!b?.bucket) return
+                            if (!lagBucketMap.has(b.bucket)) lagBucketMap.set(b.bucket, { bucket: b.bucket })
+                            lagBucketMap.get(b.bucket)[docClean] = b.count || 0
+                        })
+                }))
+
+                setComparePayerMixPivoted(Array.from(payerMap.values()))
+                setCompareCptOverlapPivoted(Array.from(cptOverlapMap.values()))
+                setCompareLagPivoted(Array.from(lagBucketMap.values()))
+
+                // Dept Mix % Heatmap
+                const deptMixMatrix = compareDoctors.map(docId => {
+                    const doc = lookups.doctors.find(d => d.id.toString() === docId)
+                    const docName = doc?.name || `Doctor ${docId}`
+                    const row: any = { doctor: docName }
+                    // Try matching docDepts by ID or by Name
+                    const docDepts = departmentsData[docId] || departmentsData[docName] || []
+                    const totalDocCharges = (docDepts || []).reduce((acc: number, d) => acc + (d?.charges || 0), 0)
+                    compDepts.forEach(dept => {
+                        const match = docDepts.find(d => d?.department_name === dept)
+                        const pct = totalDocCharges ? ((match?.charges || 0) / totalDocCharges) : 0
+                        row[dept] = { charges: pct * 100, payments: 0, label: match ? `${(pct * 100).toFixed(1)}%` : '0%' }
+                    })
+                    return row
                 })
-                setCompareDeptPivoted(Array.from(deptMap.values()))
+                setCompareDeptMixMatrix(deptMixMatrix)
 
             } catch (error) {
                 console.error("Failed to fetch comparison data:", error)
+                // Set empty states to clear loading indicators if fetch fails
+                setCompareTrendPivoted([])
+                setCompareHeatmapMatrix([])
+                setCompareCptHeatmapMatrix([])
+                setCompareDeptMixMatrix([])
+                setComparePayerMixPivoted([])
+                setCompareCptOverlapPivoted([])
+                setCompareLagPivoted([])
             } finally {
                 setIsLoadingCompare(false)
             }
         }
         loadCompareData()
-    }, [dateRange, dateBasis, compareDoctors, lookups.doctors])
+    }, [dateRange, dateBasis, compareDoctors, lookups.doctors, topN])
 
     const compareTrendDynamicConfig = useMemo(() => {
-        if (!compareApiData || compareDoctors.length !== 2) return {}
+        if (compareDoctors.length !== 2) return {}
         const config: any = {}
-        const colors = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"]
-        const docs = Array.from(new Set(compareApiData.series.map(s => s.doctor)))
-        docs.forEach((doc, idx) => {
-            const docClean = doc.replace(/[^a-zA-Z0-9]/g, '_')
+        const colors = ["var(--chart-1)", "var(--chart-2)"]
+        compareDoctors.forEach((id, idx) => {
+            const doc = lookups.doctors.find(d => d.id.toString() === id)
+            const docName = doc?.name || `Doctor ${id}`
+            const docClean = docName.replace(/[^a-zA-Z0-9]/g, '_')
             config[`${docClean}_charges`] = {
-                label: `${doc} Charges`,
-                color: colors[idx * 2]
+                label: `${docName} Charges`,
+                color: colors[idx] || "var(--chart-1)"
             }
             config[`${docClean}_payments`] = {
-                label: `${doc} Payments`,
-                color: colors[idx * 2 + 1]
+                label: `${docName} Payments`,
+                color: colors[idx] || "var(--chart-2)"
             }
         })
         return config
-    }, [compareApiData, compareDoctors])
+    }, [compareDoctors, lookups.doctors])
 
-    // const [overallForecast, setOverallForecast] = useState<ForecastData | null>(null)
-    // const [overallForecastMetricPivoted, setOverallForecastMetricPivoted] = useState<any[] | null>(null)
-    // const [deptChargesForecast, setDeptChargesForecast] = useState<any[] | null>(null)
-    // const [deptPaymentsForecast, setDeptPaymentsForecast] = useState<any[] | null>(null)
-    // const [deptForecastGroups, setDeptForecastGroups] = useState<string[]>([])
-
-    /*
-        useEffect(() => {
-            const loadForecasts = async () => {
-                setIsLoadingForecasts(true)
-                const filters: DashboardFilter & { freq: string, horizon: number, charges_method: string } = {
-                    start_date: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
-                    end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
-                    date_basis: dateBasis,
-                    doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
-                    department_ids: selectedDepartment !== 'all' ? [parseInt(selectedDepartment)] : undefined,
-                    facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined,
-                    payer_groupby: payerGroupBy,
-                    freq: forecastFrequency,
-                    horizon: forecastHorizon,
-                    charges_method: forecastMethod
-                }
-                try {
-                    const ofc = await fetchOverallForecast(filters)
-                    setOverallForecast(ofc)
-    
-                    // Pivot overall forecast for dual line chart
-                    const overallMap = new Map<string, any>()
-                    ofc.rows.forEach(p => {
-                        if (!overallMap.has(p.date)) overallMap.set(p.date, { date: p.date })
-                        const row = overallMap.get(p.date)
-                        row[`${p.metric}_actual`] = p.actual
-                        row[`${p.metric}_forecast`] = p.forecast
-                    })
-                    setOverallForecastMetricPivoted(Array.from(overallMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
-    
-                    const dfc = await fetchDeptForecast(filters)
-                    // Pivot department forecasts
-                    const chMap = new Map<string, any>()
-                    const pmMap = new Map<string, any>()
-                    const groups = new Set<string>()
-    
-                    dfc.rows.forEach(p => {
-                        const normalizedDept = p.department.replace(/[^a-zA-Z0-9]/g, '_')
-                        groups.add(p.department)
-                        if (p.metric === 'charges') {
-                            if (!chMap.has(p.date)) chMap.set(p.date, { date: p.date })
-                            chMap.get(p.date)[normalizedDept] = p.forecast
-                        } else {
-                            if (!pmMap.has(p.date)) pmMap.set(p.date, { date: p.date })
-                            pmMap.get(p.date)[normalizedDept] = p.forecast
-                        }
-                    })
-                    setDeptChargesForecast(Array.from(chMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
-                    setDeptPaymentsForecast(Array.from(pmMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
-                    setDeptForecastGroups(Array.from(groups))
-    
-                } catch (error) {
-                    console.error("Failed to fetch forecasts:", error)
-                } finally {
-                    setIsLoadingForecasts(false)
-                }
+    const compareBarDynamicConfig = useMemo(() => {
+        if (compareDoctors.length !== 2) return {}
+        const config: any = {}
+        const colors = ["var(--chart-1)", "var(--chart-2)"]
+        compareDoctors.forEach((id, idx) => {
+            const doc = lookups.doctors.find(d => d.id.toString() === id)
+            const docName = doc?.name || `Doctor ${id}`
+            const docClean = docName.replace(/[^a-zA-Z0-9]/g, '_')
+            config[docClean] = {
+                label: docName,
+                color: colors[idx] || `var(--chart-${idx + 1})`
             }
-            loadForecasts()
-        }, [dateRange, dateBasis, selectedDoctor, selectedDepartment, selectedFacilities, payerGroupBy, forecastFrequency, forecastHorizon, forecastMethod])
-        */
+        })
+        return config
+    }, [compareDoctors, lookups.doctors])
 
-    // const dynamicDeptForecastConfig = useMemo(() => {
-    //     const config: any = {}
-    //     deptForecastGroups.forEach((group, index) => {
-    //         const normalizedDept = group.replace(/[^a-zA-Z0-9]/g, '_')
-    //         config[normalizedDept] = {
-    //             label: group,
-    //             color: `var(--chart-${(index % 5) + 1})`
-    //         }
-    //     })
-    //     return config
-    // }, [deptForecastGroups])
+
+    const [overallForecast, setOverallForecast] = useState<ForecastData | null>(null)
+    const [overallForecastMetricPivoted, setOverallForecastMetricPivoted] = useState<any[] | null>(null)
+    const [deptChargesForecast, setDeptChargesForecast] = useState<any[] | null>(null)
+    const [deptPaymentsForecast, setDeptPaymentsForecast] = useState<any[] | null>(null)
+    const [deptForecastGroups, setDeptForecastGroups] = useState<string[]>([])
+
+    useEffect(() => {
+        const loadForecasts = async () => {
+            setIsLoadingForecasts(true)
+            const filters: DashboardFilter & { freq: string, horizon: number, charges_method: string } = {
+                start_date: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+                end_date: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
+                date_basis: dateBasis,
+                doctor_ids: selectedDoctor !== 'all' ? [parseInt(selectedDoctor)] : undefined,
+                department_ids: resolveDeptIds(selectedDepartment),
+                facility_ids: selectedFacilities.length > 0 ? selectedFacilities.map(id => parseInt(id)) : undefined,
+                payer_groupby: payerGroupBy,
+                freq: forecastFrequency,
+                horizon: forecastHorizon,
+                charges_method: forecastMethod
+            }
+            try {
+                const ofc = await fetchOverallForecast(filters)
+                setOverallForecast(ofc)
+
+                // Pivot overall forecast for dual line chart
+                const overallMap = new Map<string, any>()
+                ofc.rows.forEach(p => {
+                    if (!overallMap.has(p.date)) overallMap.set(p.date, { date: p.date })
+                    const row = overallMap.get(p.date)
+                    row[`${p.metric}_actual`] = p.actual
+                    row[`${p.metric}_forecast`] = p.forecast
+                })
+                setOverallForecastMetricPivoted(Array.from(overallMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+
+                const dfc = await fetchDeptForecast(filters)
+                // Pivot department forecasts
+                const chMap = new Map<string, any>()
+                const pmMap = new Map<string, any>()
+                const groups = new Set<string>()
+
+                dfc.rows.forEach(p => {
+                    const normalizedDept = p.department.replace(/[^a-zA-Z0-9]/g, '_')
+                    groups.add(p.department)
+                    if (p.metric === 'charges') {
+                        if (!chMap.has(p.date)) chMap.set(p.date, { date: p.date })
+                        chMap.get(p.date)[normalizedDept] = p.forecast
+                    } else {
+                        if (!pmMap.has(p.date)) pmMap.set(p.date, { date: p.date })
+                        pmMap.get(p.date)[normalizedDept] = p.forecast
+                    }
+                })
+                setDeptChargesForecast(Array.from(chMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+                setDeptPaymentsForecast(Array.from(pmMap.values()).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+                setDeptForecastGroups(Array.from(groups))
+
+            } catch (error) {
+                console.error("Failed to fetch forecasts:", error)
+            } finally {
+                setIsLoadingForecasts(false)
+            }
+        }
+        loadForecasts()
+    }, [dateRange, dateBasis, selectedDoctor, selectedDepartment, selectedFacilities, payerGroupBy, forecastFrequency, forecastHorizon, forecastMethod])
+
+    const dynamicDeptForecastConfig = useMemo(() => {
+        const config: any = {}
+        deptForecastGroups.forEach((group, index) => {
+            const normalizedDept = group.replace(/[^a-zA-Z0-9]/g, '_')
+            config[normalizedDept] = {
+                label: group,
+                color: `var(--chart-${(index % 5) + 1})`
+            }
+        })
+        return config
+    }, [deptForecastGroups])
 
 
 
@@ -580,13 +785,9 @@ function SessionDashboard() {
     }
 
     const handleDepartmentClick = (data: any) => {
-        const id = data?.department_id || data?.payload?.department_id
-        if (id) {
-            setSelectedDepartment(id.toString())
-        } else if (data?.department || data?.payload?.department || data?.department_name || data?.payload?.department_name) {
-            const name = data.department || data.payload.department || data.department_name || data.payload.department_name
-            const dept = lookups.departments.find(d => d.name === name)
-            if (dept) setSelectedDepartment(dept.id.toString())
+        const name = data?.department_name || data?.payload?.department_name || data?.department || data?.payload?.department
+        if (name) {
+            setSelectedDepartment(name)
         }
     }
 
@@ -805,14 +1006,11 @@ function SessionDashboard() {
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl border-border/40 shadow-2xl max-h-64 overflow-y-auto">
                                         <SelectItem value="all" className="rounded-xl font-bold text-xs py-2.5">All Departments</SelectItem>
-                                        {lookups.departments.map(d => {
-                                            const idStr = d.id.toString()
-                                            return (
-                                                <SelectItem key={idStr} value={idStr} className="rounded-xl font-bold text-xs py-2.5">
-                                                    {d.name}
-                                                </SelectItem>
-                                            )
-                                        })}
+                                        {Array.from(new Set(lookups.departments.map(d => d.name))).sort().map(name => (
+                                            <SelectItem key={name} value={name} className="rounded-xl font-bold text-xs py-2.5">
+                                                {name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -954,12 +1152,10 @@ function SessionDashboard() {
                             <GitCompare className="size-4 group-data-[state=active]:scale-110 transition-transform" />
                             Compare
                         </TabsTrigger>
-                        {/* 
                         <TabsTrigger value="forecasts" className="rounded-xl gap-2 font-bold data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg transition-all duration-300 group">
                             <ForecastIcon className="size-4 group-data-[state=active]:scale-110 transition-transform" />
                             Forecasts
                         </TabsTrigger>
-                        */}
                     </TabsList>
 
                     <TabsContent value="overview" className="space-y-10 outline-none animate-in fade-in-50 duration-500">
@@ -1046,7 +1242,7 @@ function SessionDashboard() {
                             <DashboardDepartmentBreakdown
                                 data={drilldownDepartmentData}
                                 selectedDoctor={selectedDoctor}
-                                onDepartmentClick={handleDepartmentBarClick}
+                                onDepartmentClick={handleDepartmentClick}
                                 loading={isLoadingDrilldownDepts}
                             />
 
@@ -1059,29 +1255,99 @@ function SessionDashboard() {
                     </TabsContent>
 
                     <TabsContent value="compare" className="outline-none animate-in fade-in-50 duration-500">
-                        <div className="grid gap-6">
+                        <div className="grid gap-6 lg:grid-cols-12">
+                            <div className="lg:col-span-12">
+                                <DashboardCompareKpis
+                                    data={compareKpiData}
+                                    loading={isLoadingCompare}
+                                />
+                            </div>
+
                             <DashboardCompareTrend
                                 data={compareTrendPivoted}
                                 config={compareTrendDynamicConfig}
                                 loading={isLoadingCompare}
+                                className="lg:col-span-12"
                             />
 
                             <DashboardCompareTotals
                                 data={compareApiData?.totals || null}
                                 onBarClick={handleDoctorBarClick}
                                 loading={isLoadingCompare}
+                                className="lg:col-span-12"
                             />
 
-                            <DashboardCompareDepartments
-                                data={compareDeptPivoted}
-                                config={compareTrendDynamicConfig}
-                                onBarClick={handleDoctorBarClick}
+                            <DashboardHeatmap
+                                title="Compare Departments Heatmap"
+                                description="Side-by-side departmental revenue distribution"
+                                data={null}
+                                matrix={compareHeatmapMatrix}
+                                departments={compareHeatmapDepts}
+                                onDoctorClick={handleDoctorBarClick}
+                                onDepartmentClick={handleDepartmentClick}
+                                onResetDoctor={() => { }}
                                 loading={isLoadingCompare}
+                                className="lg:col-span-12"
                             />
+
+                            <DashboardHeatmap
+                                title="Compare CPT Heatmap"
+                                description="Top CPT charges distribution between doctors"
+                                data={null}
+                                matrix={compareCptHeatmapMatrix}
+                                departments={compareCptHeatmapCodes}
+                                onDoctorClick={handleDoctorBarClick}
+                                onDepartmentClick={() => { }}
+                                onResetDoctor={() => { }}
+                                loading={isLoadingCompare}
+                                className="lg:col-span-12"
+                            />
+
+                            <DashboardCompareBar
+                                title="Compare Payer Mix"
+                                description="Payments by Payer Type"
+                                data={comparePayerMixPivoted}
+                                config={compareBarDynamicConfig}
+                                dataKey="payer_type"
+                                loading={isLoadingCompare}
+                                formatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                                className="lg:col-span-12"
+                            />
+                            <DashboardCompareBar
+                                title="Compare CPT Mix Overlap"
+                                description="% of total charges for top CPTs"
+                                data={compareCptOverlapPivoted}
+                                config={compareBarDynamicConfig}
+                                dataKey="CPTCode"
+                                loading={isLoadingCompare}
+                                formatter={(v) => `${v.toFixed(1)}%`}
+                                className="lg:col-span-12"
+                            />
+                            <DashboardCompareBar
+                                title="Compare Lag Distribution"
+                                description="Wait times comparison"
+                                data={compareLagPivoted}
+                                config={compareBarDynamicConfig}
+                                dataKey="bucket"
+                                loading={isLoadingCompare}
+                                className="lg:col-span-12"
+                            />
+                            <DashboardHeatmap
+                                title="Compare Department Mix %"
+                                description="% of doctor revenue per department"
+                                data={null}
+                                matrix={compareDeptMixMatrix}
+                                departments={compareHeatmapDepts}
+                                onDoctorClick={handleDoctorBarClick}
+                                onDepartmentClick={handleDepartmentClick}
+                                onResetDoctor={() => { }}
+                                loading={isLoadingCompare}
+                                className="lg:col-span-12"
+                            />
+
                         </div>
                     </TabsContent>
 
-                    {/* 
                     <TabsContent value="forecasts" className="outline-none animate-in fade-in-50 duration-500">
                         <div className="grid gap-6">
                             <DashboardForecastControls
@@ -1183,7 +1449,6 @@ function SessionDashboard() {
                             </Card>
                         </div>
                     </TabsContent>
-                    */}
                 </Tabs >
             </div >
         </div >

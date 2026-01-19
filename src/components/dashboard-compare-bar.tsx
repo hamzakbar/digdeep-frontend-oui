@@ -16,52 +16,57 @@ import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
+    ChartLegend,
+    ChartLegendContent,
     type ChartConfig,
 } from "@/components/ui/chart"
-import { Activity } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { type LagData } from "@/lib/api"
 import { ChartLoadingOverlay } from "@/components/chart-loading-overlay"
 
-const lagChartConfig = {
-    count: {
-        label: "Count",
-        color: "var(--chart-1)",
-    },
-} satisfies ChartConfig
-
-interface DashboardLagChartProps {
-    data: LagData | null
+interface DashboardCompareBarProps {
+    title: string
+    description: string
+    data: any[] | null
+    config: ChartConfig
+    dataKey: string
     loading?: boolean
     className?: string
+    formatter?: (value: any) => string
 }
 
-export function DashboardLagChart({ data, loading, className }: DashboardLagChartProps) {
-    const chartData = data?.buckets || []
-
+export function DashboardCompareBar({
+    title,
+    description,
+    data,
+    config,
+    dataKey,
+    loading,
+    className,
+    formatter
+}: DashboardCompareBarProps) {
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
             <ChartLoadingOverlay isLoading={!!loading} />
             <CardHeader className="p-8 pb-0">
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle className="text-xl font-black">Payment Lag Buckets</CardTitle>
-                        <CardDescription className="text-xs font-medium">Distribution of days until payment</CardDescription>
+                        <CardTitle className="text-xl font-black">{title}</CardTitle>
+                        <CardDescription className="text-xs font-medium">{description}</CardDescription>
                     </div>
                 </div>
             </CardHeader>
             <CardContent className="p-8 pt-6">
                 <div className="h-[400px] w-full">
-                    {chartData.length > 0 ? (
-                        <ChartContainer config={lagChartConfig} className="h-full w-full">
+                    {data && data.length > 0 ? (
+                        <ChartContainer config={config} className="h-full w-full">
                             <BarChart
                                 accessibilityLayer
-                                data={chartData}
+                                data={data}
                                 margin={{ top: 20, bottom: 20 }}
                             >
                                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                                 <XAxis
-                                    dataKey="bucket"
+                                    dataKey={dataKey}
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
@@ -74,6 +79,7 @@ export function DashboardLagChart({ data, loading, className }: DashboardLagChar
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
+                                    tickFormatter={formatter || ((value) => value)}
                                     fontSize={11}
                                     fontFamily="Inter, sans-serif"
                                     fontWeight={600}
@@ -81,15 +87,17 @@ export function DashboardLagChart({ data, loading, className }: DashboardLagChar
                                 />
                                 <ChartTooltip
                                     cursor={false}
-                                    content={<ChartTooltipContent hideLabel />}
+                                    content={<ChartTooltipContent />}
                                 />
-                                <Bar
-                                    dataKey="count"
-                                    fill="var(--color-count)"
-                                    radius={[8, 8, 4, 4]}
-                                    barSize={60}
-                                    className="transition-all duration-300 hover:opacity-80"
-                                />
+                                <ChartLegend content={<ChartLegendContent />} />
+                                {Object.keys(config).map((key) => (
+                                    <Bar
+                                        key={key}
+                                        dataKey={key}
+                                        fill={config[key]?.color}
+                                        radius={[4, 4, 0, 0]}
+                                    />
+                                ))}
                             </BarChart>
                         </ChartContainer>
                     ) : (
@@ -97,12 +105,6 @@ export function DashboardLagChart({ data, loading, className }: DashboardLagChar
                             {data === null ? 'Loading...' : 'No data available'}
                         </div>
                     )}
-                </div>
-                <div className="mt-8 flex items-center gap-2 text-muted-foreground bg-muted/20 p-3 rounded-2xl border border-border/10">
-                    <Activity className="size-4 text-primary" />
-                    <p className="text-[10px] font-medium leading-relaxed">
-                        How long it takes for a claim to get paid. Useful for identifying slow-paying payers or procedures.
-                    </p>
                 </div>
             </CardContent>
         </Card>

@@ -295,7 +295,15 @@ export interface LagPoint {
     count: number
 }
 
-export const fetchPaymentLag = async (filters: DashboardFilter): Promise<LagPoint[]> => {
+export interface LagData {
+    buckets: LagPoint[]
+    summary: {
+        avg: number
+        median: number
+    }
+}
+
+export const fetchPaymentLag = async (filters: DashboardFilter): Promise<LagData> => {
     const params = new URLSearchParams()
     if (filters.start_date) params.append('start_date', filters.start_date)
     if (filters.end_date) params.append('end_date', filters.end_date)
@@ -303,7 +311,7 @@ export const fetchPaymentLag = async (filters: DashboardFilter): Promise<LagPoin
     filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
     filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
     const result = await apiFetch(`/bi/payment-lag?${params.toString()}`)
-    return result.buckets || []
+    return result || { buckets: [], summary: { avg: 0, median: 0 } }
 }
 
 export interface PayerTrendPoint {
@@ -393,6 +401,7 @@ export interface HeatmapPoint {
     doctor: string
     department: string
     charges: number
+    payments: number
 }
 
 export const fetchHeatmap = async (filters: DashboardFilter): Promise<HeatmapPoint[]> => {
@@ -460,6 +469,23 @@ export const fetchDoctorDepartmentCPTs = async (filters: DashboardFilter): Promi
     return result.cpts || []
 }
 
+export const fetchDoctorDepartmentCPTsMulti = async (filters: DashboardFilter): Promise<DoctorDepartmentCPTPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+
+    // The multi endpoint expects doctor_id and department_ids
+    if (filters.doctor_ids && filters.doctor_ids.length > 0) {
+        params.append('doctor_id', filters.doctor_ids[0].toString())
+    }
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/doctor-department-cpts-multi?${params.toString()}`)
+    return result.cpts || []
+}
+
 export interface LookupItem {
     id: number
     name: string
@@ -484,6 +510,7 @@ export interface DoctorCompareSeriesPoint {
 }
 
 export interface DoctorCompareTotalPoint {
+    doctor_id: number
     doctor: string
     charges: number
     payments: number
@@ -499,6 +526,7 @@ export interface DoctorCompareData {
     series: DoctorCompareSeriesPoint[]
     totals: DoctorCompareTotalPoint[]
     departments: Record<string, DoctorCompareDeptPoint[]>
+    cpt_heatmap?: any[]
 }
 
 export const fetchDoctorCompare = async (filters: DashboardFilter): Promise<DoctorCompareData> => {
@@ -506,6 +534,7 @@ export const fetchDoctorCompare = async (filters: DashboardFilter): Promise<Doct
     if (filters.start_date) params.append('start_date', filters.start_date)
     if (filters.end_date) params.append('end_date', filters.end_date)
     if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    if (filters.top_n) params.append('top_n', filters.top_n.toString())
     filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
     filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
     filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
