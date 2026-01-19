@@ -15,7 +15,6 @@ import {
 import {
     ChartContainer,
     ChartTooltip,
-    ChartTooltipContent,
     type ChartConfig,
 } from "@/components/ui/chart"
 import { Layers } from "lucide-react"
@@ -35,6 +34,35 @@ interface DashboardCptBreakdownProps {
     selectedDepartment: string
     loading?: boolean
     className?: string
+}
+
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload as DoctorDepartmentCPTPoint
+        return (
+            <div className="rounded-lg border bg-background p-4 shadow-xl min-w-[300px] max-w-[400px]">
+                <div className="mb-3 border-b pb-2 border-border/50">
+                    <h4 className="font-bold text-base text-primary/90">{data.CPTCode}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-snug">{data.ProcedureDescription}</p>
+                </div>
+                <div className="grid gap-2">
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground font-medium">Charges</span>
+                        <span className="font-semibold font-mono text-foreground">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(data.charges)}
+                        </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground font-medium">Payments</span>
+                        <span className="font-semibold font-mono text-foreground">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(data.payments)}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    return null
 }
 
 export function DashboardCptBreakdown({
@@ -86,8 +114,8 @@ export function DashboardCptBreakdown({
                                         stroke="#888888"
                                     />
                                     <ChartTooltip
-                                        cursor={false}
-                                        content={<ChartTooltipContent />}
+                                        cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                                        content={<CustomTooltip />}
                                     />
                                     <Bar
                                         dataKey="charges"
