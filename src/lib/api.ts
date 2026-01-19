@@ -212,3 +212,361 @@ export async function streamTask(
     const body = { task, log_iter: 3, red_report: false }
     await _streamer(endpoint, body, onChunk, signal)
 }
+
+export interface DashboardFilter {
+    start_date?: string
+    end_date?: string
+    date_basis?: string
+    doctor_ids?: number[]
+    department_ids?: number[]
+    facility_ids?: number[]
+    payer_groupby?: string
+    top_n?: number
+}
+
+export interface KPIData {
+    total_charges: number
+    charges_change: number
+    total_payments: number
+    payments_change: number
+    net: number
+    collection_rate: number
+    efficiency: number
+}
+
+export const fetchKPIs = async (filters: DashboardFilter): Promise<KPIData> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/kpis?${params.toString()}`)
+    return result.kpis || result
+}
+
+export interface TimeSeriesPoint {
+    date: string
+    charges: number
+    payments: number
+}
+
+export interface DoctorTimeSeriesData {
+    series: TimeSeriesPoint[]
+}
+
+export const fetchDoctorTimeSeries = async (filters: DashboardFilter): Promise<TimeSeriesPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/doctor-timeseries?${params.toString()}`)
+    return result.series || []
+}
+
+export interface DoctorTotal {
+    doctor_id: number
+    doctor: string
+    charges: number
+    payments: number
+}
+
+export const fetchDoctorTotals = async (filters: DashboardFilter): Promise<DoctorTotal[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/doctor-totals?${params.toString()}`)
+    return result.totals || []
+}
+
+export interface LagPoint {
+    bucket: string
+    count: number
+}
+
+export const fetchPaymentLag = async (filters: DashboardFilter): Promise<LagPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    const result = await apiFetch(`/bi/payment-lag?${params.toString()}`)
+    return result.buckets || []
+}
+
+export interface PayerTrendPoint {
+    date: string
+    payments: number
+    payer_group: string
+}
+
+export const fetchPayerTrend = async (filters: DashboardFilter): Promise<PayerTrendPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    if (filters.payer_groupby) params.append('group_by', filters.payer_groupby)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/payer-trend?${params.toString()}`)
+    return result.series || []
+}
+
+export interface CPTMixPoint {
+    CPTCode: string
+    charges: number
+    ProcedureDescription: string
+    volume: number
+    payments: number
+}
+
+export const fetchCPTMix = async (filters: DashboardFilter): Promise<CPTMixPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    if (filters.top_n) params.append('top_n', filters.top_n.toString())
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/cpt-mix?${params.toString()}`)
+    return result.cpts || []
+}
+
+export interface UnpaidCPTPoint {
+    CPTCode: string
+    unpaid: number
+    ProcedureDescription: string
+    charges: number
+    payments: number
+}
+
+export const fetchUnpaidCPT = async (filters: DashboardFilter): Promise<UnpaidCPTPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    if (filters.top_n) params.append('top_n', filters.top_n.toString())
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/unpaid-cpt?${params.toString()}`)
+    return result.rows || []
+}
+
+export interface UnallocatedSummary {
+    unallocated_payments: number
+    percent_unallocated: number
+    total_payments: number
+}
+
+export const fetchUnallocatedPayments = async (filters: DashboardFilter): Promise<UnallocatedSummary> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/unallocated-payments?${params.toString()}`)
+    return result.summary
+}
+
+export interface HeatmapPoint {
+    doctor: string
+    department: string
+    charges: number
+}
+
+export const fetchHeatmap = async (filters: DashboardFilter): Promise<HeatmapPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/doctor-department-heatmap?${params.toString()}`)
+    return result.matrix || result.rows || []
+}
+
+export const fetchPayerSummary = async (filters: DashboardFilter): Promise<any> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    return apiFetch(`/bi/payer-summary?${params.toString()}`)
+}
+
+export interface DoctorDepartmentPoint {
+    department_id: number
+    department_name: string
+    charges: number
+    payments: number
+}
+
+export const fetchDoctorDepartments = async (filters: DashboardFilter): Promise<DoctorDepartmentPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/doctor-departments?${params.toString()}`)
+    return result.departments || []
+}
+
+export interface DoctorDepartmentCPTPoint {
+    CPTCode: string
+    charges: number
+    payments: number
+    ProcedureDescription: string
+}
+
+export const fetchDoctorDepartmentCPTs = async (filters: DashboardFilter): Promise<DoctorDepartmentCPTPoint[]> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/doctor-department-cpts?${params.toString()}`)
+    return result.cpts || []
+}
+
+export interface LookupItem {
+    id: number
+    name: string
+}
+
+export interface Lookups {
+    doctors: LookupItem[]
+    departments: LookupItem[]
+    facilities: LookupItem[]
+}
+
+export const fetchLookups = async (): Promise<Lookups> => {
+    const result = await apiFetch('/bi/lookups')
+    return result
+}
+
+export interface DoctorCompareSeriesPoint {
+    date: string
+    doctor: string
+    charges: number
+    payments: number
+}
+
+export interface DoctorCompareTotalPoint {
+    doctor: string
+    charges: number
+    payments: number
+}
+
+export interface DoctorCompareDeptPoint {
+    department_name: string
+    charges: number
+    payments: number
+}
+
+export interface DoctorCompareData {
+    series: DoctorCompareSeriesPoint[]
+    totals: DoctorCompareTotalPoint[]
+    departments: Record<string, DoctorCompareDeptPoint[]>
+}
+
+export const fetchDoctorCompare = async (filters: DashboardFilter): Promise<DoctorCompareData> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/doctor-compare?${params.toString()}`)
+    return result
+}
+
+export interface OverallForecastPoint {
+    date: string
+    metric: string
+    actual: number | null
+    forecast: number | null
+}
+
+export interface DepartmentForecastPoint {
+    date: string
+    department: string
+    metric: string
+    forecast: number | null
+}
+
+export interface ForecastData {
+    rows: any[]
+    meta?: {
+        payer_weights?: Record<string, number>
+        collection_rate_alloc?: number
+        unalloc_factor?: number
+    }
+}
+
+export const fetchOverallForecast = async (filters: DashboardFilter & { freq: string, horizon: number, charges_method: string }): Promise<ForecastData> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    if (filters.freq) params.append('freq', filters.freq)
+    if (filters.horizon) params.append('horizon', filters.horizon.toString())
+    if (filters.charges_method) params.append('charges_method', filters.charges_method)
+    if (filters.payer_groupby) params.append('payer_groupby', filters.payer_groupby)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/overall-forecast?${params.toString()}`)
+    return result
+}
+
+export const fetchDeptForecast = async (filters: DashboardFilter & { freq: string, horizon: number, charges_method: string }): Promise<ForecastData> => {
+    const params = new URLSearchParams()
+    if (filters.start_date) params.append('start_date', filters.start_date)
+    if (filters.end_date) params.append('end_date', filters.end_date)
+    if (filters.date_basis) params.append('date_basis', filters.date_basis)
+    if (filters.freq) params.append('freq', filters.freq)
+    if (filters.horizon) params.append('horizon', filters.horizon.toString())
+    if (filters.charges_method) params.append('charges_method', filters.charges_method)
+    if (filters.payer_groupby) params.append('payer_groupby', filters.payer_groupby)
+    filters.doctor_ids?.forEach(id => params.append('doctor_ids', id.toString()))
+    filters.department_ids?.forEach(id => params.append('department_ids', id.toString()))
+    filters.facility_ids?.forEach(id => params.append('facility_ids', id.toString()))
+
+    const result = await apiFetch(`/bi/department-forecast?${params.toString()}`)
+    return result
+}

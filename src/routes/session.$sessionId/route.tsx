@@ -21,7 +21,8 @@ import {
     FileText,
     ArrowLeft,
     Database,
-    Sparkles
+    Sparkles,
+    LayoutDashboard
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEffect } from 'react'
@@ -64,9 +65,14 @@ function SessionLayout() {
 
     const navItems = [
         {
-            label: 'Agent',
+            label: 'Chat',
             icon: MessageSquare,
             to: '/session/$sessionId/chat',
+        },
+        {
+            label: 'Dashboard',
+            icon: LayoutDashboard,
+            to: '/session/$sessionId/dashboard',
         },
         {
             label: 'Files',

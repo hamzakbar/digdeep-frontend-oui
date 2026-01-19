@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SessionSessionIdRouteRouteImport } from './routes/session.$sessionId/route'
 import { Route as SessionSessionIdIndexRouteImport } from './routes/session.$sessionId/index'
 import { Route as SessionSessionIdFilesRouteImport } from './routes/session.$sessionId/files'
+import { Route as SessionSessionIdDashboardRouteImport } from './routes/session.$sessionId/dashboard'
 import { Route as SessionSessionIdChatRouteImport } from './routes/session.$sessionId/chat'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -41,6 +42,12 @@ const SessionSessionIdFilesRoute = SessionSessionIdFilesRouteImport.update({
   path: '/files',
   getParentRoute: () => SessionSessionIdRouteRoute,
 } as any)
+const SessionSessionIdDashboardRoute =
+  SessionSessionIdDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => SessionSessionIdRouteRoute,
+  } as any)
 const SessionSessionIdChatRoute = SessionSessionIdChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -52,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/session/$sessionId': typeof SessionSessionIdRouteRouteWithChildren
   '/session/$sessionId/chat': typeof SessionSessionIdChatRoute
+  '/session/$sessionId/dashboard': typeof SessionSessionIdDashboardRoute
   '/session/$sessionId/files': typeof SessionSessionIdFilesRoute
   '/session/$sessionId/': typeof SessionSessionIdIndexRoute
 }
@@ -59,6 +67,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/session/$sessionId/chat': typeof SessionSessionIdChatRoute
+  '/session/$sessionId/dashboard': typeof SessionSessionIdDashboardRoute
   '/session/$sessionId/files': typeof SessionSessionIdFilesRoute
   '/session/$sessionId': typeof SessionSessionIdIndexRoute
 }
@@ -68,6 +77,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/session/$sessionId': typeof SessionSessionIdRouteRouteWithChildren
   '/session/$sessionId/chat': typeof SessionSessionIdChatRoute
+  '/session/$sessionId/dashboard': typeof SessionSessionIdDashboardRoute
   '/session/$sessionId/files': typeof SessionSessionIdFilesRoute
   '/session/$sessionId/': typeof SessionSessionIdIndexRoute
 }
@@ -78,6 +88,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/session/$sessionId'
     | '/session/$sessionId/chat'
+    | '/session/$sessionId/dashboard'
     | '/session/$sessionId/files'
     | '/session/$sessionId/'
   fileRoutesByTo: FileRoutesByTo
@@ -85,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/session/$sessionId/chat'
+    | '/session/$sessionId/dashboard'
     | '/session/$sessionId/files'
     | '/session/$sessionId'
   id:
@@ -93,6 +105,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/session/$sessionId'
     | '/session/$sessionId/chat'
+    | '/session/$sessionId/dashboard'
     | '/session/$sessionId/files'
     | '/session/$sessionId/'
   fileRoutesById: FileRoutesById
@@ -140,6 +153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SessionSessionIdFilesRouteImport
       parentRoute: typeof SessionSessionIdRouteRoute
     }
+    '/session/$sessionId/dashboard': {
+      id: '/session/$sessionId/dashboard'
+      path: '/dashboard'
+      fullPath: '/session/$sessionId/dashboard'
+      preLoaderRoute: typeof SessionSessionIdDashboardRouteImport
+      parentRoute: typeof SessionSessionIdRouteRoute
+    }
     '/session/$sessionId/chat': {
       id: '/session/$sessionId/chat'
       path: '/chat'
@@ -152,12 +172,14 @@ declare module '@tanstack/react-router' {
 
 interface SessionSessionIdRouteRouteChildren {
   SessionSessionIdChatRoute: typeof SessionSessionIdChatRoute
+  SessionSessionIdDashboardRoute: typeof SessionSessionIdDashboardRoute
   SessionSessionIdFilesRoute: typeof SessionSessionIdFilesRoute
   SessionSessionIdIndexRoute: typeof SessionSessionIdIndexRoute
 }
 
 const SessionSessionIdRouteRouteChildren: SessionSessionIdRouteRouteChildren = {
   SessionSessionIdChatRoute: SessionSessionIdChatRoute,
+  SessionSessionIdDashboardRoute: SessionSessionIdDashboardRoute,
   SessionSessionIdFilesRoute: SessionSessionIdFilesRoute,
   SessionSessionIdIndexRoute: SessionSessionIdIndexRoute,
 }
