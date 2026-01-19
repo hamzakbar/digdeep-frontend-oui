@@ -13,7 +13,7 @@ interface DashboardStatsCardProps {
     className?: string
 }
 
-export function DashboardStatsCard({ title, value, icon: Icon, trend, loading, className }: DashboardStatsCardProps) {
+export function DashboardStatsCard({ title, value, icon: Icon, loading, className }: DashboardStatsCardProps) {
     return (
         <Card className={cn(
             "rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 overflow-hidden group hover:border-primary/20 hover:bg-muted/30 transition-all duration-500 bg-card/30 backdrop-blur-md py-0 gap-0",
