@@ -651,6 +651,33 @@ function SessionDashboard() {
         loadCompareData()
     }, [dateRange, dateBasis, compareDoctors, lookups.doctors, topN])
 
+    const CptOverlapTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload
+            return (
+                <div className="rounded-lg border bg-background p-4 shadow-xl min-w-[300px] max-w-[400px]">
+                    <div className="mb-3 border-b pb-2 border-border/50">
+                        <h4 className="font-bold text-base text-primary/90">{data.CPTCode}</h4>
+                        <p className="text-xs text-muted-foreground mt-1 leading-snug">{data.ProcedureDescription}</p>
+                    </div>
+                    <div className="grid gap-2">
+                        {payload.map((entry: any) => (
+                            <div key={entry.dataKey} className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground font-medium" style={{ color: entry.color }}>
+                                    {entry.name}
+                                </span>
+                                <span className="font-semibold font-mono text-foreground">
+                                    {entry.value.toFixed(1)}%
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )
+        }
+        return null
+    }
+
     const compareTrendDynamicConfig = useMemo(() => {
         if (compareDoctors.length !== 2) return {}
         const config: any = {}
@@ -1315,6 +1342,7 @@ function SessionDashboard() {
                                 dataKey="CPTCode"
                                 loading={isLoadingCompare}
                                 formatter={(v) => `${v.toFixed(1)}%`}
+                                tooltip={<CptOverlapTooltip />}
                                 className="lg:col-span-12"
                             />
                             <DashboardCompareBar

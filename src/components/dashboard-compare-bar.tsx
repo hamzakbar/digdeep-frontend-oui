@@ -32,6 +32,7 @@ interface DashboardCompareBarProps {
     loading?: boolean
     className?: string
     formatter?: (value: any) => string
+    tooltip?: React.ReactElement
 }
 
 export function DashboardCompareBar({
@@ -42,7 +43,8 @@ export function DashboardCompareBar({
     dataKey,
     loading,
     className,
-    formatter
+    formatter,
+    tooltip
 }: DashboardCompareBarProps) {
     return (
         <Card className={cn("rounded-[2rem] border-border/40 shadow-2xl shadow-primary/5 bg-card/60 backdrop-blur-xl overflow-hidden group hover:border-primary/20 transition-all duration-500", className)}>
@@ -86,8 +88,8 @@ export function DashboardCompareBar({
                                     stroke="#888888"
                                 />
                                 <ChartTooltip
-                                    cursor={false}
-                                    content={<ChartTooltipContent />}
+                                    cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                                    content={tooltip || <ChartTooltipContent />}
                                 />
                                 <ChartLegend content={<ChartLegendContent />} />
                                 {Object.keys(config).map((key) => (
