@@ -26,3 +26,11 @@ if (!rootElement.innerHTML) {
     </StrictMode>,
   )
 }
+
+// Register the PWA service worker (production only) so DigDeep can be installed
+// to the desktop. Dev is skipped to avoid interfering with HMR.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => { /* non-fatal */ })
+  })
+}

@@ -1,0 +1,24 @@
+{
+  "name": "DigDeep",
+  "short_name": "DigDeep",
+  "description": "DigDeep — charges, receipts and analytics for your group.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1c1c1c",
+  "icons": [
+    {
+      "src": "/digdeep-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/digdeep-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
