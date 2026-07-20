@@ -1,6 +1,4 @@
-import { auth } from './auth'
-
-const BASE_URL = import.meta.env.VITE_API_URL
+import { auth, getApiBase } from './auth'
 
 export interface Session {
     session_id: string
@@ -28,7 +26,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         headers.set('Content-Type', 'application/json')
     }
 
-    const response = await fetch(`${BASE_URL}${path}`, {
+    const response = await fetch(`${getApiBase()}${path}`, {
         ...options,
         headers,
         credentials: 'include',
@@ -137,7 +135,7 @@ export interface OrgUser {
 
 export const fetchOrgUsers = async (orgId: string, email?: string): Promise<{ users: OrgUser[] }> => {
     const query = email ? `?email=${encodeURIComponent(email)}` : ''
-    return apiFetch(`/session/organization/${orgId}${query}`)
+    return apiFetch(`/users/organization/${orgId}${query}`)
 }
 
 export const shareSessionWithUsers = async (sessionId: string, userIds: string[]): Promise<{ status: string; message: string }> => {
@@ -187,7 +185,7 @@ async function _streamer(
     onChunk: (chunk: string) => void,
     signal: AbortSignal
 ) {
-    const url = `${import.meta.env.VITE_API_URL}${endpoint}`
+    const url = `${getApiBase()}${endpoint}`
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         Accept: 'application/json',

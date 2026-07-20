@@ -16,14 +16,17 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { auth } from '@/lib/auth'
+import { auth, AUTH_MODE, SSO_ENABLED, startLogin } from '@/lib/auth'
 import { ModeToggle } from '@/components/mode-toggle'
+import { MicrosoftSignInButton } from '@/components/microsoft-signin-button'
 
 export const Route = createFileRoute('/')({
     component: LandingPage,
 })
 
-const REDIRECT_URL = 'https://treatmentgps.com/home/'
+// Primary login method for generic CTAs (SSO when enabled, else legacy).
+// The navbar offers explicit buttons when both are enabled. See src/lib/auth.ts.
+const primaryLogin = () => startLogin(SSO_ENABLED ? 'sso' : 'legacy')
 
 // --- Components ---
 
@@ -34,7 +37,7 @@ function Navbar({ isAuthenticated, isLoading }: { isAuthenticated: boolean; isLo
         if (isAuthenticated) {
             navigate({ to: '/dashboard' })
         } else {
-            window.location.href = REDIRECT_URL
+            primaryLogin()
         }
     }
 
@@ -64,19 +67,44 @@ function Navbar({ isAuthenticated, isLoading }: { isAuthenticated: boolean; isLo
 
                 <div className="flex items-center gap-4 shrink-0">
                     <ModeToggle />
-                    <Button
-                        onClick={handleAuthAction}
-                        disabled={isLoading}
-                        className="rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 min-w-[140px]"
-                    >
-                        {isLoading ? (
-                            <Loader2 className="size-4 animate-spin" />
-                        ) : isAuthenticated ? (
-                            'Go to Dashboard'
-                        ) : (
-                            'Log in'
-                        )}
-                    </Button>
+                    {isAuthenticated ? (
+                        <Button
+                            onClick={handleAuthAction}
+                            disabled={isLoading}
+                            className="rounded-2xl shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 min-w-[140px]"
+                        >
+                            {isLoading ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                'Go to Dashboard'
+                            )}
+                        </Button>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            {AUTH_MODE !== 'legacy' && (
+                                <MicrosoftSignInButton
+                                    onClick={() => startLogin('sso')}
+                                    loading={isLoading}
+                                />
+                            )}
+                            {AUTH_MODE !== 'sso' && (
+                                <Button
+                                    variant={AUTH_MODE === 'both' ? 'outline' : 'default'}
+                                    onClick={() => startLogin('legacy')}
+                                    disabled={isLoading}
+                                    className="rounded-2xl transition-all hover:scale-105 active:scale-95"
+                                >
+                                    {isLoading ? (
+                                        <Loader2 className="size-4 animate-spin" />
+                                    ) : AUTH_MODE === 'both' ? (
+                                        'Continue with TreatmentGPS'
+                                    ) : (
+                                        'Log in'
+                                    )}
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </nav>
@@ -90,7 +118,7 @@ function HeroSection({ isAuthenticated, isLoading }: { isAuthenticated: boolean;
         if (isAuthenticated) {
             navigate({ to: '/dashboard' })
         } else {
-            window.location.href = REDIRECT_URL
+            primaryLogin()
         }
     }
 
@@ -310,7 +338,7 @@ function CTASection({ isAuthenticated, isLoading }: { isAuthenticated: boolean; 
         if (isAuthenticated) {
             navigate({ to: '/dashboard' })
         } else {
-            window.location.href = REDIRECT_URL
+            primaryLogin()
         }
     }
 
